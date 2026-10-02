@@ -1,20 +1,19 @@
 # SIDQ Creative website
 
-Node.js + Express. No database needed. Edits are saved in `content.json`, applications in `leads.json`.
+Node.js + Express + PostgreSQL. Site content, shorts and applications are stored in the database.
 
 ## Deploy on Railway
-1. Push this folder to a GitHub repo.
-2. Railway: New Project > Deploy from GitHub repo.
-3. In Variables, add `ADMIN_PASSWORD` (a long password only you know). Admin login stays off until you set it.
-4. Add a Volume, mount it at `/data`, and add the variable `DATA_DIR=/data`. Without this, Railway deletes your edits and applications on every redeploy.
-5. Open Settings > Networking > Generate Domain.
+1. Push this folder's contents to a GitHub repo and deploy it on Railway (New Project > Deploy from GitHub repo).
+2. In the same project click + New > Database > Add PostgreSQL.
+3. Open your website service > Variables > Add a variable reference > pick `DATABASE_URL` from Postgres.
+   (Or add a variable named `DATABASE_URL` with the value `${{Postgres.DATABASE_URL}}`.)
+4. Add the variable `ADMIN_PASSWORD` (a long password only you know).
+5. Settings > Networking > Generate Domain. Admin is at `/admin`.
 
-## Admin
-Go to `/admin`. Edit texts, view numbers, clipper counts, the shorts carousel (paste YouTube Shorts links, one per line, 5 to 100) and read applications.
+Tables are created automatically on first start. No Volume is needed.
 
 ## Run on your computer
 ```
 npm install
-ADMIN_PASSWORD=test npm start
+DATABASE_URL=postgres://user:pass@localhost:5432/sidq ADMIN_PASSWORD=test npm start
 ```
-Site: http://localhost:3000 and admin: http://localhost:3000/admin
