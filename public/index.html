@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SIDQ Creative | Short-form clipping agency</title>
+<meta name="description" content="SIDQ Creative turns long videos into shorts that reach millions of viewers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap" rel="stylesheet">
+<style>
+:root{--g:#22c55e;--m:#8f8f8f;--l:#242424}
+*{box-sizing:border-box;margin:0}
+@media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}.wave i{animation:w 1.2s ease-in-out infinite alternate}.wave i:nth-child(2n){animation-delay:.3s}.wave i:nth-child(3n){animation-delay:.6s}}
+@keyframes w{to{transform:scaleY(.45)}}
+body{background:#000 radial-gradient(#ffffff12 1px,#0000 1px) 0 0/28px 28px;color:#fff;font:400 17px/1.55 Outfit,system-ui,sans-serif}
+:focus-visible{outline:2px solid var(--g);outline-offset:3px}
+section{max-width:1100px;margin:auto;padding:120px 24px 0}
+nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);width:min(900px,94vw);display:flex;align-items:center;justify-content:space-between;gap:16px;padding:9px 10px 9px 22px;border:1px solid var(--l);border-radius:99px;background:#000c;backdrop-filter:blur(10px);z-index:9}
+nav b{letter-spacing:.12em;font-weight:900}nav i{color:var(--m);font-style:normal}
+nav div{display:flex;gap:22px;color:var(--m);font-size:14px}nav div a{color:inherit;text-decoration:none}nav div a:hover{color:#fff}
+.btn{display:inline-block;background:#fff;color:#000;border:0;border-radius:99px;padding:12px 26px;font:600 15px Outfit,sans-serif;text-decoration:none;cursor:pointer}
+.btn.o{background:none;color:#fff;border:1px solid #444}
+h1,h2{font-weight:900;line-height:.95;letter-spacing:-.03em;text-transform:uppercase}
+h1{font-size:clamp(44px,9vw,120px)}h2{font-size:clamp(32px,6vw,62px);margin-bottom:16px}
+h1 span{display:block}h1 span+span{color:#666}
+h3{font-size:22px;line-height:1.2}
+.hero{min-height:100vh;display:grid;align-content:center;justify-items:center;text-align:center;gap:28px}
+.hero p,.lead{max-width:620px;color:var(--m);font-size:19px}
+.row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;text-align:center;border-block:1px solid var(--l);padding:48px 0}
+.stats b{display:block;font-size:clamp(38px,5vw,60px);font-weight:900;letter-spacing:-.02em;line-height:1.1}
+.stats small{color:var(--m);font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:40px}
+article{background:#0c0c0c;border:1px solid var(--l);border-radius:18px;padding:28px;min-height:190px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;transition:background .25s,color .25s}
+article p{color:var(--m)}article:hover{background:#fff;color:#000}article:hover p{color:#333}
+.wide{grid-column:span 2}
+.car{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:28px 0 20px}
+.car>div{flex:0 0 220px;aspect-ratio:9/16;scroll-snap-align:start;border-radius:20px;overflow:hidden;background:#111 center/cover;position:relative;cursor:pointer;border:1px solid var(--l)}
+.car>div:not(:has(iframe))::after{content:"▶";position:absolute;inset:0;display:grid;place-items:center;font-size:34px;background:#0004}
+.car iframe{width:100%;height:100%;border:0}
+.steps{list-style:none;padding:0;counter-reset:s;margin-top:40px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:100px 1fr;column-gap:20px;padding:28px 0;border-top:1px solid var(--l)}
+.steps li::before{content:counter(s,decimal-leading-zero);grid-row:span 3;font-size:56px;font-weight:900;line-height:1;color:transparent;-webkit-text-stroke:1px #666}
+.steps p{color:var(--m)}
+.wave{display:flex;align-items:center;gap:6px;height:56px;margin-top:10px}
+.wave i{width:8px;height:var(--h);background:#444;border-radius:9px}.wave i.on{background:var(--g)}
+.fc{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:28px;align-items:center;border:1px solid var(--l);border-radius:24px;padding:28px;background:#0c0c0c;margin-top:32px}
+#fimg{aspect-ratio:3/4;border-radius:18px;background:#151515 center/cover}
+.fc h3{font-size:clamp(34px,5vw,56px);font-weight:900;text-transform:uppercase;letter-spacing:-.02em}
+.fc p{color:var(--m)}.fs{display:flex;gap:40px;margin-top:28px}.fs b{display:block;font-size:40px;font-weight:900;line-height:1.1}.fs small{color:var(--m)}
+.tabs{display:inline-flex;border:1px solid #2a2a2a;border-radius:99px;padding:4px;margin-top:20px}
+.tabs button{background:none;border:0;color:var(--m);padding:10px 20px;border-radius:99px;font:600 14px Outfit,sans-serif;cursor:pointer}
+.tabs .on{background:#fff;color:#000}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:24px}
+label{display:grid;gap:6px;color:var(--m);font-size:14px}
+input,textarea{background:#0c0c0c;border:1px solid #2a2a2a;border-radius:12px;color:#fff;padding:14px;font:inherit}
+.full,form .btn,#fm{grid-column:1/-1}form .btn{justify-self:start}
+footer{max-width:1100px;margin:120px auto 0;padding:32px 24px;border-top:1px solid var(--l);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;color:var(--m);font-size:14px}
+footer a{color:inherit}
+@media(max-width:640px){nav div{display:none}.wide{grid-column:auto}.steps li{grid-template-columns:70px 1fr}.steps li::before{font-size:40px}}
+</style>
+</head>
+<body>
+<nav><b>SIDQ<i> CREATIVE</i></b><div><a href="#why">Services</a><a href="#process">Process</a><a href="#apply">Contact</a></div><a class="btn" href="#apply">Get started</a></nav>
+
+<section class="hero">
+  <h1><span data-t="heroA"></span><span data-t="heroB"></span></h1>
+  <p data-t="sub"></p>
+  <div class="row"><a class="btn" href="#apply">Start working with us</a><a class="btn o" id="work" href="#shorts">See our work</a></div>
+</section>
+
+<section><div class="stats" id="stats"></div></section>
+
+<section id="why">
+  <h2 data-t="whyH"></h2><p class="lead" data-t="why"></p>
+  <div class="grid">
+    <article class="wide"><h3>Reach more people</h3><p>Get your content in front of new audiences on every platform.</p></article>
+    <article><h3>Increase revenue</h3><p>Turn viewers into paying customers.</p></article>
+    <article><h3>Grow faster</h3><p>Add new followers every day with shorts people finish watching.</p></article>
+    <article><h3>One video, 20+ shorts</h3><p>Send one long video. We cut it into shorts.</p></article>
+  </div>
+</section>
+
+<section id="shorts">
+  <h2>Popular shorts</h2>
+  <div class="car"></div>
+  <div class="row"><button class="btn o" id="pv">Back</button><button class="btn o" id="nx">Next</button></div>
+</section>
+
+<section id="process">
+  <h2>How it works</h2>
+  <ol class="steps">
+    <li><h3>Send your raw footage</h3><p>Upload the long video. No prep needed.</p></li>
+    <li><h3>We find the best moments</h3><p>We look for strong hooks and moments people keep watching.</p><div class="wave" aria-hidden="true"></div></li>
+    <li><h3>Pro editors cut it</h3><p>Fast pacing, captions and graphics on every clip.</p></li>
+    <li><h3>Ready to upload</h3><p>Get finished shorts for every major platform.</p></li>
+  </ol>
+</section>
+
+<section id="founder">
+  <h2>Meet the founder</h2>
+  <div class="fc">
+    <div id="fimg" role="img" aria-label="Founder photo"></div>
+    <div><h3 data-t="fName"></h3><p data-t="fRole"></p>
+      <div class="fs"><div><b data-t="f1"></b><small data-t="f1l"></small></div><div><b data-t="f2"></b><small data-t="f2l"></small></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="apply">
+  <h2>Work with us</h2><p class="lead">Choose your type and we reply within 24 hours.</p>
+  <div class="tabs"><button class="on" data-k="customer">For customers</button><button data-k="clipper">For clippers</button></div>
+  <form>
+    <label>Name<input name="name" required maxlength="80"></label>
+    <label>Email<input name="email" type="email" required maxlength="120"></label>
+    <label>Phone or WhatsApp<input name="phone" maxlength="40"></label>
+    <label><span id="bl">Budget</span><input name="budget" maxlength="200"></label>
+    <label class="full">Message (optional)<textarea name="msg" rows="4" maxlength="1000"></textarea></label>
+    <button class="btn">Send application</button>
+    <p id="fm" role="status"></p>
+  </form>
+</section>
+
+<footer><span>© <span id="y"></span> SIDQ Creative</span><a id="em" data-t="email"></a></footer>
+
+<script>
+const $=s=>document.querySelector(s);
+$('#y').textContent=new Date().getFullYear();
+$('.wave').innerHTML='35 22 48 30 56 18 40 26 52 20 44 28'.split(' ').map((h,i)=>`<i style="--h:${h}px"${i<3?' class="on"':''}></i>`).join('');
+
+fetch('/api/content').then(r=>r.json()).then(d=>{
+  document.querySelectorAll('[data-t]').forEach(e=>e.textContent=d.t[e.dataset.t]||'');
+  $('#em').href='mailto:'+d.t.email;
+  $('#stats').innerHTML=d.stats.map(()=>'<div><b></b><small></small></div>').join('');
+  d.stats.forEach((s,i)=>{const e=$('#stats').children[i];e.firstChild.textContent=s.v;e.lastChild.textContent=s.l});
+  $('#fimg').hidden=!d.t.fImg;
+  if(d.t.fImg)$('#fimg').style.backgroundImage=`url("${encodeURI(d.t.fImg)}")`;
+  const ids=d.shorts.map(u=>(String(u).match(/(?:shorts\/|v=|youtu\.be\/)([\w-]{11})/)||[])[1]).filter(Boolean);
+  $('#shorts').hidden=$('#work').hidden=!ids.length;
+  $('.car').innerHTML=ids.map(i=>`<div data-id="${i}" style="background-image:url(https://img.youtube.com/vi/${i}/hqdefault.jpg)"></div>`).join('');
+});
+
+$('.car').onclick=e=>{const c=e.target.closest('[data-id]');if(c&&!c.querySelector('iframe'))c.innerHTML=`<iframe src="https://www.youtube.com/embed/${c.dataset.id}?autoplay=1&playsinline=1" allow="autoplay;encrypted-media" allowfullscreen title="Short"></iframe>`};
+$('#nx').onclick=()=>$('.car').scrollBy({left:460,behavior:'smooth'});
+$('#pv').onclick=()=>$('.car').scrollBy({left:-460,behavior:'smooth'});
+
+let type='customer';
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  type=b.dataset.k;
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  $('#bl').textContent=type==='customer'?'Budget':'Link to your best edits';
+});
+$('form').onsubmit=async e=>{
+  e.preventDefault();
+  const f=Object.fromEntries(new FormData(e.target));f.type=type;
+  try{
+    const r=await fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(f)});
+    if(!r.ok)throw 0;
+    $('#fm').textContent='Sent. We reply within 24 hours.';e.target.reset();
+  }catch{$('#fm').textContent='Could not send. Check your connection and try again.'}
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>SIDQ Creative admin</title>
+<style>
+body{background:#0a0a0a;color:#fff;font:15px/1.5 system-ui,sans-serif;max-width:780px;margin:auto;padding:24px}
+input,textarea{width:100%;background:#151515;border:1px solid #333;color:#fff;padding:10px;border-radius:8px;margin:4px 0 14px;font:inherit}
+label{display:block;color:#aaa;font-size:13px}
+h2{margin:32px 0 8px}
+button{background:#22c55e;border:0;border-radius:99px;padding:12px 26px;font:700 15px system-ui,sans-serif;cursor:pointer}
+.r{display:grid;grid-template-columns:1fr 2fr;gap:10px}
+table{width:100%;font-size:13px;border-collapse:collapse}
+td{border-top:1px solid #222;padding:8px 6px;vertical-align:top;word-break:break-word}
+#msg{color:#22c55e;margin-left:12px}#le{color:#f87171;margin-left:12px}
+.bar{position:sticky;bottom:0;background:#0a0a0af0;padding:14px 0}
+</style>
+</head>
+<body>
+<h1>SIDQ Creative admin</h1>
+
+<form id="lg">
+  <label for="pw">Password</label>
+  <input id="pw" type="password" autocomplete="current-password" required>
+  <button>Log in</button><span id="le" role="alert"></span>
+</form>
+
+<div id="ed" hidden>
+  <div id="f"></div>
+  <div class="bar"><button id="sv">Save changes</button><span id="msg" role="status"></span></div>
+  <h2>Applications</h2>
+  <div id="ls"></div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const L={heroA:'Hero line 1 (white)',heroB:'Hero line 2 (grey)',sub:'Hero paragraph',whyH:'Why section title',why:'Why section text',fName:'Founder name',fRole:'Founder title',f1:'Founder number 1',f1l:'Number 1 label',f2:'Founder number 2',f2l:'Number 2 label',fImg:'Founder photo link (optional)',email:'Contact email'};
+let tok=sessionStorage.k,D;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const api=(u,m='GET',b)=>fetch(u,{method:m,headers:{'Content-Type':'application/json','x-token':tok||''},body:b&&JSON.stringify(b)})
+  .then(async r=>{const j=await r.json().catch(()=>({}));if(!r.ok)throw j.error||'Something went wrong';return j});
+
+async function load(){
+  try{
+    const ls=await api('/api/leads');D=await api('/api/content');
+    $('#lg').hidden=true;$('#ed').hidden=false;
+    $('#f').innerHTML='<h2>Texts</h2>'
+      +Object.keys(D.t).map(k=>`<label>${L[k]||k}<input data-k="${k}" value="${esc(D.t[k])}"></label>`).join('')
+      +'<h2>Numbers</h2>'
+      +D.stats.map((s,i)=>`<div class="r"><label>Number<input data-v="${i}" value="${esc(s.v)}"></label><label>Label<input data-l="${i}" value="${esc(s.l)}"></label></div>`).join('')
+      +`<h2>Popular shorts carousel</h2><label>One YouTube Shorts link per line (5 to 100)<textarea id="sh" rows="10">${esc(D.shorts.join('\n'))}</textarea></label>`;
+    $('#ls').innerHTML=ls.length
+      ?`<table>${ls.map(l=>`<tr><td>${esc(new Date(l.at).toLocaleString())}<br>${esc(l.type)}</td><td>${esc(l.name)}<br>${esc(l.email)}<br>${esc(l.phone)}</td><td>${esc(l.budget)}<br>${esc(l.msg)}</td></tr>`).join('')}</table>`
+      :'<p>No applications yet.</p>';
+  }catch(e){$('#ed').hidden=true;$('#lg').hidden=false;if(tok)$('#le').textContent=e}
+}
+
+$('#lg').onsubmit=async e=>{
+  e.preventDefault();
+  try{tok=(await api('/api/login','POST',{password:$('#pw').value})).token;sessionStorage.k=tok;$('#le').textContent='';load()}
+  catch(x){$('#le').textContent=x}
+};
+
+$('#sv').onclick=async()=>{
+  document.querySelectorAll('[data-k]').forEach(i=>D.t[i.dataset.k]=i.value);
+  document.querySelectorAll('[data-v]').forEach(i=>D.stats[i.dataset.v].v=i.value);
+  document.querySelectorAll('[data-l]').forEach(i=>D.stats[i.dataset.l].l=i.value);
+  D.shorts=$('#sh').value.split('\n').map(s=>s.trim()).filter(Boolean).slice(0,100);
+  try{await api('/api/content','PUT',D);$('#msg').textContent='Saved. Refresh the site to see it.'}
+  catch(e){$('#msg').textContent=e}
+};
+
+if(tok)load();
+</script>
+</body>
+</html>
