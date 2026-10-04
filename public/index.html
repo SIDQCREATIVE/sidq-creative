@@ -3,12 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SIDQ Creative | Short-form clipping agency</title>
-<meta name="description" content="SIDQ Creative turns long videos into shorts that reach millions of viewers.">
+<title>SIDQ Creative | Short-Form Video Clipping Agency for Creators</title>
+<meta name="description" content="SIDQ Creative is a short-form clipping agency. We turn podcasts, streams and long videos into viral short clips, backed by 1K+ public clippers and 100M+ views generated.">
+<meta name="theme-color" content="#000000">
+<link rel="canonical" href="%SITE%/">
+<link rel="icon" href="/favicon.png" type="image/png"><link rel="apple-touch-icon" href="/logo-mark.png">
+<meta property="og:type" content="website"><meta property="og:site_name" content="SIDQ Creative">
+<meta property="og:title" content="SIDQ Creative | Short-Form Video Clipping Agency"><meta property="og:url" content="%SITE%/">
+<meta property="og:description" content="We turn long videos into viral short clips. 100M+ views generated."><meta property="og:image" content="%SITE%/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"%SITE%/#org","name":"SIDQ Creative","url":"%SITE%/","description":"Short-form video clipping agency.","logo":"%SITE%/logo-mark.png","founder":{"@type":"Person","name":"Ahtisham"}},{"@type":"WebSite","name":"SIDQ Creative","url":"%SITE%/"}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap" rel="stylesheet">
 <style>
-:root{--g:#22c55e;--m:#8f8f8f;--l:#242424}
+:root{--g:#b7e222;--m:#8f8f8f;--l:#242424}
 *{box-sizing:border-box;margin:0}
 @media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}.wave i{animation:w 1.2s ease-in-out infinite alternate}.wave i:nth-child(2n){animation-delay:.3s}.wave i:nth-child(3n){animation-delay:.6s}}
 @keyframes w{to{transform:scaleY(.45)}}
@@ -58,13 +66,34 @@ input,textarea{background:#0c0c0c;border:1px solid #2a2a2a;border-radius:12px;co
 footer{max-width:1100px;margin:120px auto 0;padding:32px 24px;border-top:1px solid var(--l);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;color:var(--m);font-size:14px}
 footer a{color:inherit}
 @media(max-width:640px){nav div{display:none}.wide{grid-column:auto}.steps li{grid-template-columns:70px 1fr}.steps li::before{font-size:40px}}
+
+section,footer{position:relative;z-index:1}
+.glow{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(600px circle at var(--mx,50%) var(--my,30%),#b7e22214,#0000 60%)}
+h1{text-shadow:0 1px 0 #3a3a3a,0 2px 0 #2c2c2c,0 3px 0 #222,0 18px 40px #0009}
+.hero h1{transform:perspective(900px) rotateX(var(--hx,0deg)) rotateY(var(--hy,0deg));transition:transform .15s}
+.tilt{transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .15s,background .25s,color .25s}
+.car video{width:100%;height:100%;object-fit:cover;display:block}
+.cap{position:absolute;left:0;right:0;bottom:0;padding:40px 14px 14px;font-weight:600;background:linear-gradient(#0000,#000d);pointer-events:none}
+.car>div.on::after{display:none!important}
+.cd,.cr{position:fixed;top:0;left:0;pointer-events:none;z-index:99;border-radius:50%}
+.cd{width:8px;height:8px;background:#fff;margin:-4px 0 0 -4px}
+.cr{width:38px;height:38px;border:1px solid #fff9;margin:-19px 0 0 -19px;transition:width .2s,height .2s,margin .2s,background .2s}
+.cr.h{width:64px;height:64px;margin:-32px 0 0 -32px;background:#b7e22222;border-color:var(--g)}
+body.cur,body.cur a,body.cur button,body.cur .car>div{cursor:none}body.cur input,body.cur textarea{cursor:text}
+@media(prefers-reduced-motion:no-preference){.rv{opacity:0;transform:translateY(28px);transition:opacity .7s,transform .7s}.rv.in{opacity:1;transform:none}}
+.brand{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none}
+.logo3d{width:min(260px,56vw);height:auto;transform:perspective(900px) rotateX(var(--hx,0deg)) rotateY(var(--hy,0deg));transition:transform .15s;filter:drop-shadow(0 20px 40px #b7e22233)}
+@media(prefers-reduced-motion:no-preference){.logo3d{animation:fl 5s ease-in-out infinite alternate}}
+@keyframes fl{to{translate:0 -12px}}
 </style>
 </head>
 <body>
-<nav><b>SIDQ<i> CREATIVE</i></b><div><a href="#why">Services</a><a href="#process">Process</a><a href="#apply">Contact</a></div><a class="btn" href="#apply">Get started</a></nav>
+<div class="glow"></div>
+<nav><a class="brand" href="#top"><img src="/logo-mark.png" width="32" height="32" alt="SIDQ Creative logo"><b>SIDQ<i> CREATIVE</i></b></a><div><a href="#why">Services</a><a href="#process">Process</a><a href="#apply">Contact</a><a href="/blog">Blog</a></div><a class="btn" href="#apply">Get started</a></nav>
 
-<section class="hero">
-  <h1><span data-t="heroA"></span><span data-t="heroB"></span></h1>
+<section class="hero" id="top">
+  <img class="logo3d" src="/logo.webp" alt="SIDQ Creative 3D logo" width="260" height="272" fetchpriority="high">
+  <h1><span data-t="heroA">BE EVERYWHERE.</span><span data-t="heroB">ALL AT ONCE.</span></h1>
   <p data-t="sub"></p>
   <div class="row"><a class="btn" href="#apply">Start working with us</a><a class="btn o" id="work" href="#shorts">See our work</a></div>
 </section>
@@ -121,10 +150,10 @@ footer a{color:inherit}
   </form>
 </section>
 
-<footer><span>© <span id="y"></span> SIDQ Creative</span><a id="em" data-t="email"></a></footer>
+<footer><span>© <span id="y"></span> SIDQ Creative &nbsp; <a href="/blog">Blog</a></span><a id="em" data-t="email"></a></footer>
 
 <script>
-const $=s=>document.querySelector(s);
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 $('#y').textContent=new Date().getFullYear();
 $('.wave').innerHTML='35 22 48 30 56 18 40 26 52 20 44 28'.split(' ').map((h,i)=>`<i style="--h:${h}px"${i<3?' class="on"':''}></i>`).join('');
 
@@ -135,12 +164,17 @@ fetch('/api/content').then(r=>r.json()).then(d=>{
   d.stats.forEach((s,i)=>{const e=$('#stats').children[i];e.firstChild.textContent=s.v;e.lastChild.textContent=s.l});
   $('#fimg').hidden=!d.t.fImg;
   if(d.t.fImg)$('#fimg').style.backgroundImage=`url("${encodeURI(d.t.fImg)}")`;
-  const ids=d.shorts.map(u=>(String(u).match(/(?:shorts\/|v=|youtu\.be\/)([\w-]{11})/)||[])[1]).filter(Boolean);
-  $('#shorts').hidden=$('#work').hidden=!ids.length;
-  $('.car').innerHTML=ids.map(i=>`<div data-id="${i}" style="background-image:url(https://img.youtube.com/vi/${i}/hqdefault.jpg)"></div>`).join('');
+  const cap=c=>c?`<span class="cap">${esc(c)}</span>`:'';
+  const items=d.shorts.map(l=>{const[u,c='']=String(l).split('|').map(s=>s.trim());const y=(u.match(/(?:shorts\/|v=|youtu\.be\/)([\w-]{11})/)||[])[1];
+    if(y)return`<div data-id="${y}" style="background-image:url(https://img.youtube.com/vi/${y}/hqdefault.jpg)">${cap(c)}</div>`;
+    if(/^\/videos\/[\w.-]+\.mp4$/.test(u)||/^https:\/\/[^\s"'<>]+\.mp4$/.test(u))return`<div><video src="${u}" poster="${u.replace(/\.mp4$/,'.jpg')}" playsinline loop preload="none"></video>${cap(c)}</div>`;return''}).filter(Boolean);
+  $('#shorts').hidden=$('#work').hidden=!items.length;
+  $('.car').innerHTML=items.join('');
 });
 
-$('.car').onclick=e=>{const c=e.target.closest('[data-id]');if(c&&!c.querySelector('iframe'))c.innerHTML=`<iframe src="https://www.youtube.com/embed/${c.dataset.id}?autoplay=1&playsinline=1" allow="autoplay;encrypted-media" allowfullscreen title="Short"></iframe>`};
+$('.car').onclick=e=>{const c=e.target.closest('.car>div');if(!c)return;const v=c.querySelector('video');
+  if(v){document.querySelectorAll('.car video').forEach(x=>{if(x!==v){x.pause();x.parentNode.classList.remove('on')}});if(v.paused){v.play();c.classList.add('on')}else{v.pause();c.classList.remove('on')}return}
+  if(c.dataset.id&&!c.querySelector('iframe'))c.innerHTML=`<iframe src="https://www.youtube.com/embed/${c.dataset.id}?autoplay=1&playsinline=1" allow="autoplay;encrypted-media" allowfullscreen title="Short"></iframe>`};
 $('#nx').onclick=()=>$('.car').scrollBy({left:460,behavior:'smooth'});
 $('#pv').onclick=()=>$('.car').scrollBy({left:-460,behavior:'smooth'});
 
@@ -159,6 +193,23 @@ $('form').onsubmit=async e=>{
     $('#fm').textContent='Sent. We reply within 24 hours.';e.target.reset();
   }catch{$('#fm').textContent='Could not send. Check your connection and try again.'}
 };
+
+// reveal on scroll
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1});
+document.querySelectorAll('section:not(.hero)').forEach(s=>{s.classList.add('rv');io.observe(s)});
+// custom cursor, 3D tilt and glow for mouse users (PC and laptop)
+if(matchMedia('(hover:hover) and (pointer:fine)').matches){
+  document.body.classList.add('cur');
+  const dot=document.body.appendChild(Object.assign(document.createElement('div'),{className:'cd'})),ring=document.body.appendChild(Object.assign(document.createElement('div'),{className:'cr'}));
+  const R=document.documentElement.style;let x=0,y=0,rx=0,ry=0;
+  addEventListener('mousemove',e=>{x=e.clientX;y=e.clientY;dot.style.transform=`translate(${x}px,${y}px)`;R.setProperty('--mx',x+'px');R.setProperty('--my',y+'px');
+    R.setProperty('--hx',(.5-y/innerHeight)*7+'deg');R.setProperty('--hy',(x/innerWidth-.5)*9+'deg');
+    ring.classList.toggle('h',!!e.target.closest('a,button,input,textarea,label,.car>div'))});
+  (function f(){rx+=(x-rx)*.18;ry+=(y-ry)*.18;ring.style.transform=`translate(${rx}px,${ry}px)`;requestAnimationFrame(f)})();
+  document.querySelectorAll('article,.fc').forEach(el=>{el.classList.add('tilt');
+    el.addEventListener('mousemove',e=>{const b=el.getBoundingClientRect();el.style.setProperty('--ry',((e.clientX-b.left)/b.width-.5)*10+'deg');el.style.setProperty('--rx',(.5-(e.clientY-b.top)/b.height)*10+'deg')});
+    el.addEventListener('mouseleave',()=>{el.style.setProperty('--rx','0deg');el.style.setProperty('--ry','0deg')})});
+}
 </script>
 </body>
 </html>

@@ -10,11 +10,11 @@ body{background:#0a0a0a;color:#fff;font:15px/1.5 system-ui,sans-serif;max-width:
 input,textarea{width:100%;background:#151515;border:1px solid #333;color:#fff;padding:10px;border-radius:8px;margin:4px 0 14px;font:inherit}
 label{display:block;color:#aaa;font-size:13px}
 h2{margin:32px 0 8px}
-button{background:#22c55e;border:0;border-radius:99px;padding:12px 26px;font:700 15px system-ui,sans-serif;cursor:pointer}
+button{background:#b7e222;border:0;border-radius:99px;padding:12px 26px;font:700 15px system-ui,sans-serif;cursor:pointer}
 .r{display:grid;grid-template-columns:1fr 2fr;gap:10px}
 table{width:100%;font-size:13px;border-collapse:collapse}
 td{border-top:1px solid #222;padding:8px 6px;vertical-align:top;word-break:break-word}
-#msg{color:#22c55e;margin-left:12px}#le{color:#f87171;margin-left:12px}
+#msg{color:#b7e222;margin-left:12px}#le{color:#f87171;margin-left:12px}
 .bar{position:sticky;bottom:0;background:#0a0a0af0;padding:14px 0}
 </style>
 </head>
@@ -30,6 +30,12 @@ td{border-top:1px solid #222;padding:8px 6px;vertical-align:top;word-break:break
 <div id="ed" hidden>
   <div id="f"></div>
   <div class="bar"><button id="sv">Save changes</button><span id="msg" role="status"></span></div>
+  <h2>Blog (SEO)</h2>
+  <label>Title<input id="bt"></label>
+  <label>Short description for Google (about 150 characters)<input id="bd" maxlength="300"></label>
+  <label>Text (empty line between paragraphs, start a line with ## for a heading)<textarea id="bb" rows="10"></textarea></label>
+  <button id="bp">Publish post</button><span id="bm" role="status"></span>
+  <div id="bl"></div>
   <h2>Applications</h2>
   <div id="ls"></div>
 </div>
@@ -50,10 +56,11 @@ async function load(){
       +Object.keys(D.t).map(k=>`<label>${L[k]||k}<input data-k="${k}" value="${esc(D.t[k])}"></label>`).join('')
       +'<h2>Numbers</h2>'
       +D.stats.map((s,i)=>`<div class="r"><label>Number<input data-v="${i}" value="${esc(s.v)}"></label><label>Label<input data-l="${i}" value="${esc(s.l)}"></label></div>`).join('')
-      +`<h2>Popular shorts carousel</h2><label>One YouTube Shorts link per line (5 to 100)<textarea id="sh" rows="10">${esc(D.shorts.join('\n'))}</textarea></label>`;
+      +`<h2>Popular shorts carousel</h2><label>One per line: a YouTube Shorts link, or /videos/file.mp4 | Client name (5 to 100)<textarea id="sh" rows="10">${esc(D.shorts.join('\n'))}</textarea></label>`;
     $('#ls').innerHTML=ls.length
       ?`<table>${ls.map(l=>`<tr><td>${esc(new Date(l.at).toLocaleString())}<br>${esc(l.type)}</td><td>${esc(l.name)}<br>${esc(l.email)}<br>${esc(l.phone)}</td><td>${esc(l.budget)}<br>${esc(l.msg)}</td></tr>`).join('')}</table>`
       :'<p>No applications yet.</p>';
+    posts();
   }catch(e){$('#ed').hidden=true;$('#lg').hidden=false;if(tok)$('#le').textContent=e}
 }
 
@@ -71,6 +78,10 @@ $('#sv').onclick=async()=>{
   try{await api('/api/content','PUT',D);$('#msg').textContent='Saved. Refresh the site to see it.'}
   catch(e){$('#msg').textContent=e}
 };
+
+async function posts(){const p=await api('/api/posts');$('#bl').innerHTML=p.map(x=>`<p><a style="color:#b7e222" href="/blog/${esc(x.slug)}" target="_blank">${esc(x.title)}</a> <button data-del="${x.id}" style="padding:4px 12px;background:#7f1d1d;color:#fff">Delete</button></p>`).join('')}
+$('#bp').onclick=async()=>{try{const r=await api('/api/posts','POST',{title:$('#bt').value,descr:$('#bd').value,body:$('#bb').value});$('#bm').textContent='Published: /blog/'+r.slug;['bt','bd','bb'].forEach(i=>$('#'+i).value='');posts()}catch(e){$('#bm').textContent=e}};
+$('#bl').onclick=async e=>{const id=e.target.dataset.del;if(id&&confirm('Delete this post?')){await api('/api/posts/'+id,'DELETE');posts()}};
 
 if(tok)load();
 </script>

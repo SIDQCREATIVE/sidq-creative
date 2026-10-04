@@ -17,3 +17,9 @@ Tables are created automatically on first start. No Volume is needed.
 npm install
 DATABASE_URL=postgres://user:pass@localhost:5432/sidq ADMIN_PASSWORD=test npm start
 ```
+
+## Videos and SEO
+- Put videos in `public/videos/` (file.mp4 plus file.jpg as the preview image). In admin, add a line like `/videos/file.mp4 | Client name`.
+- Optional variable `SITE_URL` (for example https://sidqcreative.com) sets the address used in SEO tags.
+- After going live, add your site to Google Search Console and submit `/sitemap.xml`.
+- Write blog posts in admin under Blog (SEO). Each post gets its own page at `/blog/your-title`.
