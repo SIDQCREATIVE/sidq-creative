@@ -136,11 +136,23 @@ details p{color:var(--m);margin-top:10px;max-width:700px}
 .iti__search-input{background:#151515;color:#fff;border:0;border-bottom:1px solid #333}
 .iti__country.iti__highlight{background:#1d1d1d}
 .iti__selected-country:hover,.iti__selected-country:focus{background:#ffffff0f}
+article .big{display:block;font-weight:900;color:#b7e222;line-height:1.1;letter-spacing:-.02em;font-size:clamp(40px,6vw,64px)}article:hover .big{color:#000}
+.price{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}.price article{justify-content:flex-start;gap:14px}.price .big{font-size:clamp(26px,3.2vw,34px)}
+.price .btn{align-self:flex-start;margin-top:auto}article ul{color:var(--m);padding-left:18px;display:grid;gap:6px}article:hover ul{color:#333}
+.chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;margin-top:28px}.chips small{color:var(--m)}
+.chips span,#cf button{border:1px solid #333;border-radius:99px;padding:6px 16px;color:#ddd;background:none;font:inherit;cursor:pointer}
+#cf{justify-content:flex-start;margin:20px 0 0}#cf .on{background:#b7e222;color:#000;border-color:#b7e222}
+.ba{display:grid;grid-template-columns:repeat(2,minmax(0,260px));gap:20px;justify-content:center;margin:32px 0}.ba figure{margin:0}
+.ba video{width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:20px;border:1px solid var(--l);background:#111}.ba figcaption{text-align:center;color:var(--m);margin-top:8px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;margin-top:28px}th,td{padding:16px;text-align:left;border-bottom:1px solid var(--l)}
+th{color:var(--m);font-weight:600}td:first-child{color:var(--m)}th:nth-child(2),td:nth-child(2){color:#b7e222}
+.wa{position:fixed;right:18px;bottom:18px;z-index:20;background:#25d366;color:#000;font-weight:700;border-radius:99px;padding:12px 20px;text-decoration:none;box-shadow:0 8px 24px #000a}
+.soc{display:flex;gap:16px}.soc a{color:inherit}
 </style>
 </head>
 <body>
 <div class="glow"></div>
-<nav><a class="brand" href="#top"><img src="/logo-mark.png" width="32" height="32" alt="SIDQ Creative logo"><b>SIDQ<i> CREATIVE</i></b></a><div id="menu"><a href="#services"><span class="r"><i data-l="Services">Services</i></span></a><a href="#shorts"><span class="r"><i data-l="Work">Work</i></span></a><a href="#process"><span class="r"><i data-l="Process">Process</i></span></a><a href="/blog"><span class="r"><i data-l="Blog">Blog</i></span></a><a href="#apply"><span class="r"><i data-l="Contact">Contact</i></span></a></div><a class="btn go" href="#apply">Get started</a><button class="mb" aria-label="Menu" aria-expanded="false">&#9776;</button></nav>
+<nav><a class="brand" href="#top"><img src="/logo-mark.png" width="32" height="32" alt="SIDQ Creative logo"><b>SIDQ<i> CREATIVE</i></b></a><div id="menu"><a href="#services"><span class="r"><i data-l="Services">Services</i></span></a><a href="#shorts"><span class="r"><i data-l="Work">Work</i></span></a><a href="#process"><span class="r"><i data-l="Process">Process</i></span></a><a href="#pricing"><span class="r"><i data-l="Pricing">Pricing</i></span></a><a href="/blog"><span class="r"><i data-l="Blog">Blog</i></span></a><a href="#apply"><span class="r"><i data-l="Contact">Contact</i></span></a></div><a class="btn go" href="#apply">Get started</a><button class="mb" aria-label="Menu" aria-expanded="false">&#9776;</button></nav>
 
 <section class="hero" id="top">
   <img class="logo3d" src="/logo.webp" alt="SIDQ Creative 3D logo" width="260" height="272" fetchpriority="high">
@@ -149,7 +161,7 @@ details p{color:var(--m);margin-top:10px;max-width:700px}
   <div class="row"><a class="btn go" href="#apply">Start working with us</a><a class="btn o" id="work" href="#shorts">See our work</a></div>
 </section>
 
-<section><div class="stats" id="stats"></div></section>
+<section><div class="stats" id="stats"></div><div class="chips"><small>We grow you on</small><span>YouTube Shorts</span><span>Instagram Reels</span><span>TikTok</span><span>Facebook</span></div></section>
 
 <section id="services">
   <h2>Our services</h2><p class="lead">Pick one service or combine them.</p>
@@ -159,6 +171,24 @@ details p{color:var(--m);margin-top:10px;max-width:700px}
     <article><h3>Short-form editing</h3><p>Pro editors turn your footage into fast, captioned shorts.</p></article>
     <article><h3>Editing + content writing</h3><p>Edited shorts plus hooks, titles and captions written for you.</p></article>
   </div>
+</section>
+
+<section id="results">
+  <h2>Real results</h2><p class="lead">Numbers from accounts we have grown.</p>
+  <div class="grid">
+    <article><b class="big">27K+</b><h3>Diary of a CEO fan page</h3><p>Followers gained on a podcast fan page we built.</p></article>
+    <article><b class="big">3M+</b><h3>Lacy</h3><p>Views generated for a streamer.</p></article>
+    <article><b class="big">4M+</b><h3>US politics page</h3><p>Views generated, plus 10K followers.</p></article>
+  </div>
+</section>
+
+<section id="before-after">
+  <h2>Raw vs edited</h2><p class="lead">The same moment before and after our editors. Press play on both.</p>
+  <div class="ba">
+    <figure><video src="/videos/raw.mp4" poster="/videos/raw.jpg" muted playsinline loop preload="none"></video><figcaption>Raw clip</figcaption></figure>
+    <figure><video src="/videos/edited.mp4" poster="/videos/edited.jpg" muted playsinline loop preload="none"></video><figcaption>Edited by SIDQ Creative</figcaption></figure>
+  </div>
+  <div class="row"><button class="btn go" id="baplay">Play both</button></div>
 </section>
 
 <section id="why">
@@ -173,6 +203,7 @@ details p{color:var(--m);margin-top:10px;max-width:700px}
 
 <section id="shorts">
   <h2>Popular shorts</h2>
+  <div class="chips" id="cf"></div>
   <div class="car"></div>
   <div class="row"><button class="btn o" id="pv">Back</button><button class="btn o" id="nx">Next</button></div>
 </section>
@@ -200,6 +231,29 @@ details p{color:var(--m);margin-top:10px;max-width:700px}
   </div>
 </section>
 
+<section id="pricing">
+  <h2>Pricing</h2><p class="lead">Three ways to work with us. Your final price depends on your show and your goals.</p>
+  <div class="grid price">
+    <article><h3>Clip-Only Engine</h3><p>Best for emerging podcasters who post on their own channel and need production help.</p><b class="big" data-t="p1">$1,000 – $2,000 / month</b><ul><li>20 to 30 vertical shorts a month</li><li>Captions, color grading and visual hooks</li><li>Split-screen framing</li></ul><a class="btn go" data-wa="Hi SIDQ Creative, I am interested in the Clip-Only Engine.">Get this plan</a></article>
+    <article><h3>Managed Distribution Network</h3><p>Best for mid-tier podcasters who want big reach.</p><b class="big" data-t="p2">$0.50 – $2.50+ CPM</b><ul><li>Vetted clippers post across 15 to 30 fan channels</li><li>Send the episode link, we do the rest</li><li>You pay for verified delivered views, with a monthly cap you set</li></ul><a class="btn go" data-wa="Hi SIDQ Creative, I am interested in the Managed Distribution Network.">Get this plan</a></article>
+    <article><h3>B2B Podcast Pipeline</h3><p>Best for B2B and SaaS brands, investors and corporate hosts who use a podcast to win customers.</p><b class="big" data-t="p3">$4,000 – $8,000+ / month</b><ul><li>20 vertical clips and 4 written LinkedIn breakdowns</li><li>Full account publishing management</li><li>Monthly traffic attribution report</li></ul><a class="btn go" data-wa="Hi SIDQ Creative, I am interested in the B2B Podcast Pipeline.">Get this plan</a></article>
+  </div>
+  <p class="lead">Want us to run your channel? Private clipping is $1,000 per channel per month, with 2 clips a day on each platform. <a data-s="whop" target="_blank" rel="noopener" style="color:#b7e222">See our Whop page</a></p>
+</section>
+
+<section id="compare">
+  <h2>Why SIDQ Creative</h2>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>SIDQ Creative</th><th>AI clipping tools</th><th>Freelancers</th></tr></thead>
+    <tbody>
+      <tr><td>Picking the moments</td><td>Human editors choose</td><td>Automatic</td><td>Depends on the person</td></tr>
+      <tr><td>Editing quality</td><td>Pro editors, clean edits</td><td>Template based</td><td>Varies</td></tr>
+      <tr><td>Posting</td><td>Private and public clipper network</td><td>You post</td><td>You post</td></tr>
+      <tr><td>Scale</td><td>Many channels at once</td><td>Fast but generic</td><td>Limited to one person</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
 <section id="faq">
   <h2>Frequently asked questions</h2>
   <details><summary>What is a clipping agency?</summary><p>We turn long videos such as podcasts and streams into short clips and help them reach more viewers.</p></details>
@@ -223,7 +277,8 @@ details p{color:var(--m);margin-top:10px;max-width:700px}
   </form>
 </section>
 
-<footer><span>© <span id="y"></span> SIDQ Creative &nbsp; <a href="/blog">Blog</a></span><a id="em" data-t="email"></a></footer>
+<a class="wa" data-wa="Hi SIDQ Creative, I would like to know more." target="_blank" rel="noopener">WhatsApp us</a>
+<footer><span>© <span id="y"></span> SIDQ Creative &nbsp; <a href="/blog">Blog</a></span><span class="soc"><a data-s="ig" target="_blank" rel="noopener">Instagram</a><a data-s="whop" target="_blank" rel="noopener">Whop</a><a data-s="discord" target="_blank" rel="noopener">Discord</a></span><a id="em" data-t="email"></a></footer>
 
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
@@ -231,18 +286,25 @@ $('#y').textContent=new Date().getFullYear();
 $('.wave').innerHTML='35 22 48 30 56 18 40 26 52 20 44 28'.split(' ').map((h,i)=>`<i style="--h:${h}px"${i<3?' class="on"':''}></i>`).join('');
 
 fetch('/api/content').then(r=>r.json()).then(d=>{
-  document.querySelectorAll('[data-t]').forEach(e=>e.textContent=d.t[e.dataset.t]||'');
+  document.querySelectorAll('[data-t]').forEach(e=>e.textContent=d.t[e.dataset.t]||e.textContent);
+  const wa=d.t.wa||'447362449938',D={ig:'sidqcreative',whop:'https://whop.com/sidq-creative/'};
+  document.querySelectorAll('[data-wa]').forEach(a=>{a.href='https://wa.me/'+wa+'?text='+encodeURIComponent(a.dataset.wa);a.target='_blank';a.rel='noopener'});
+  ['ig','whop','discord'].forEach(k=>{const v=d.t[k]||D[k]||'';document.querySelectorAll('[data-s="'+k+'"]').forEach(a=>{if(!v)a.hidden=true;else a.href=k==='ig'?'https://instagram.com/'+v.replace(/^@/,''):v})});
   $('#em').href='mailto:'+d.t.email;
   $('#stats').innerHTML=d.stats.map(()=>'<div><b></b><small></small></div>').join('');
   d.stats.forEach((s,i)=>{const e=$('#stats').children[i];e.firstChild.textContent=s.v;e.lastChild.textContent=s.l});
+  document.querySelectorAll('#stats b').forEach(b=>{const m=b.textContent.match(/^(\d+(?:\.\d+)?)(\D*)$/);if(!m||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+    const to=+m[1];b.textContent='0'+m[2];const o=new IntersectionObserver(([e])=>{if(!e.isIntersecting)return;o.disconnect();const t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/1500);b.textContent=Math.round(to*p)+m[2];if(p<1)requestAnimationFrame(f)})(t0)});o.observe(b)});
   const bw=d.t.fImg||'/founder-bw.jpg',co=d.t.fImg2||'/founder-color.jpg';
   $('#fimg').style.backgroundImage=`url("${encodeURI(bw)}")`;$('#fimg i').style.backgroundImage=`url("${encodeURI(co)}")`;
   const cap=c=>c?`<span class="cap">${esc(c)}</span>`:'';
   const items=d.shorts.map(l=>{const[u,c='']=String(l).split('|').map(s=>s.trim());const y=(u.match(/(?:shorts\/|v=|youtu\.be\/)([\w-]{11})/)||[])[1];
-    if(y)return`<div data-id="${y}" style="background-image:url(https://img.youtube.com/vi/${y}/hqdefault.jpg)">${cap(c)}</div>`;
-    if(/^\/videos\/[\w.-]+\.mp4$/.test(u)||/^https:\/\/[^\s"'<>]+\.mp4$/.test(u))return`<div><video src="${u}" poster="${u.replace(/\.mp4$/,'.jpg')}" playsinline loop preload="none"></video>${cap(c)}</div>`;return''}).filter(Boolean);
+    if(y)return`<div data-c="${esc(c)}" data-id="${y}" style="background-image:url(https://img.youtube.com/vi/${y}/hqdefault.jpg)">${cap(c)}</div>`;
+    if(/^\/videos\/[\w.-]+\.mp4$/.test(u)||/^https:\/\/[^\s"'<>]+\.mp4$/.test(u))return`<div data-c="${esc(c)}"><video src="${u}" poster="${u.replace(/\.mp4$/,'.jpg')}" playsinline loop preload="none"></video>${cap(c)}</div>`;return''}).filter(Boolean);
   $('#shorts').hidden=$('#work').hidden=!items.length;
   $('.car').innerHTML=items.join('');
+  const cs=[...new Set(d.shorts.map(l=>String(l).split('|')[1]).filter(Boolean).map(s=>s.trim()))];
+  $('#cf').innerHTML=cs.length>1?['All',...cs].map((c,i)=>`<button${i?'':' class="on"'}>${esc(c)}</button>`).join(''):'';
 });
 
 $('.car').onclick=e=>{const c=e.target.closest('.car>div');if(!c)return;const v=c.querySelector('video');
@@ -291,7 +353,7 @@ mb.onclick=()=>mb.setAttribute('aria-expanded',nv.classList.toggle('open'));
 $('#menu').onclick=()=>nv.classList.remove('open');
 const nl=[...document.querySelectorAll('#menu a[href^="#"]')];
 const spy=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)nl.forEach(a=>a.classList.toggle('act',a.getAttribute('href')==='#'+e.target.id))}),{rootMargin:'-45% 0px -50% 0px'});
-['services','shorts','process','faq','apply'].forEach(id=>{const s=document.getElementById(id);if(s)spy.observe(s)});
+['services','shorts','process','pricing','faq','apply'].forEach(id=>{const s=document.getElementById(id);if(s)spy.observe(s)});
 // scroll-driven "How it works": steps fade and tilt in and out in 3D
 const trk=$('.track'),sts=[...document.querySelectorAll('.st')];
 function prog(){const b=trk.getBoundingClientRect(),p=Math.min(.999,Math.max(0,-b.top/(b.height-innerHeight))),k=Math.floor(p*sts.length);
@@ -301,6 +363,10 @@ addEventListener('scroll',prog,{passive:true});addEventListener('resize',prog);p
 addEventListener('load',()=>{if(window.intlTelInput)window.iti=intlTelInput($('[name=phone]'),{initialCountry:'us',separateDialCode:true,countrySearch:true})});
 // FAQ structured data for Google
 document.head.appendChild(Object.assign(document.createElement('script'),{type:'application/ld+json',textContent:JSON.stringify({'@context':'https://schema.org','@type':'FAQPage',mainEntity:[...document.querySelectorAll('#faq details')].map(d=>({'@type':'Question',name:d.querySelector('summary').textContent,acceptedAnswer:{'@type':'Answer',text:d.querySelector('p').textContent}}))})}));
+// before / after: play both clips together
+$('#baplay').onclick=()=>{const v=[...document.querySelectorAll('.ba video')],go=v[0].paused;v[1].muted=false;v.forEach(x=>{x.currentTime=0;go?x.play():x.pause()});$('#baplay').textContent=go?'Pause both':'Play both'};
+// carousel filter by client
+$('#cf').onclick=e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#cf button').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('.car>div').forEach(v=>{v.hidden=b.textContent!=='All'&&v.dataset.c!==b.textContent})};
 </script>
 </body>
 </html>

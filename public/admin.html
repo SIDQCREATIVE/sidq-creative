@@ -44,7 +44,7 @@ td{border-top:1px solid #222;padding:8px 6px;vertical-align:top;word-break:break
 
 <script>
 const $=s=>document.querySelector(s);
-const L={heroA:'Hero line 1 (white)',heroB:'Hero line 2 (grey)',sub:'Hero paragraph',whyH:'Why section title',why:'Why section text',fName:'Founder name',fRole:'Founder title',f1:'Founder number 1',f1l:'Number 1 label',f2:'Founder number 2',f2l:'Number 2 label',fImg:'Founder photo, black and white',fImg2:'Founder photo, color (shows on hover)',email:'Contact email'};
+const L={heroA:'Hero line 1 (white)',heroB:'Hero line 2 (grey)',sub:'Hero paragraph',whyH:'Why section title',why:'Why section text',fName:'Founder name',fRole:'Founder title',f1:'Founder number 1',f1l:'Number 1 label',f2:'Founder number 2',f2l:'Number 2 label',fImg:'Founder photo, black and white',fImg2:'Founder photo, color (shows on hover)',p1:'Price, Clip-Only Engine',p2:'Price, Distribution Network',p3:'Price, B2B Pipeline',wa:'WhatsApp number (digits only, with country code)',ig:'Instagram username',whop:'Whop link',discord:'Discord invite link (full link)',email:'Contact email'};
 let tok=sessionStorage.k,D;
 const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const api=(u,m='GET',b)=>fetch(u,{method:m,headers:{'Content-Type':'application/json','x-token':tok||''},body:b&&JSON.stringify(b)})
@@ -55,7 +55,7 @@ async function load(){
     const ls=await api('/api/leads');D=await api('/api/content');
     $('#lg').hidden=true;$('#ed').hidden=false;
     $('#f').innerHTML='<h2>Texts</h2>'
-      +[...new Set([...Object.keys(D.t),'fImg','fImg2'])].map(k=>`<label>${L[k]||k}<input data-k="${k}" value="${esc(D.t[k]||'')}"></label>`).join('')
+      +[...new Set([...Object.keys(D.t),'fImg','fImg2','p1','p2','p3','wa','ig','whop','discord'])].map(k=>`<label>${L[k]||k}<input data-k="${k}" value="${esc(D.t[k]||'')}"></label>`).join('')
       +'<h2>Numbers</h2>'
       +D.stats.map((s,i)=>`<div class="r"><label>Number<input data-v="${i}" value="${esc(s.v)}"></label><label>Label<input data-l="${i}" value="${esc(s.l)}"></label></div>`).join('')
       +`<h2>Popular shorts carousel</h2><label>One per line: a YouTube Shorts link, or /videos/file.mp4 | Client name (5 to 100)<textarea id="sh" rows="10">${esc(D.shorts.join('\n'))}</textarea></label>`;
