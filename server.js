@@ -16,7 +16,7 @@ const DEFAULT = {
     sub: 'One video. Hundreds of clips. Millions of views. SIDQ Creative turns your long-form content into shorts that reach new people every day.',
     whyH: 'Why short content',
     why: 'Attention is the new currency. Short videos win on every platform and grow your audience faster than any other format.',
-    fName: 'Ahtisham', fRole: 'Founder', f1: '100K', f1l: 'Subscribers', f2: '30M+', f2l: 'Gaming views', fImg: '',
+    fName: 'Ahtisham', fRole: 'Founder', f1: '100K', f1l: 'Subscribers', f2: '30M+', f2l: 'Gaming views', fImg: '/founder-bw.jpg', fImg2: '/founder-color.jpg',
     email: 'hello@sidqcreative.com'
   },
   stats: [
@@ -64,12 +64,12 @@ app.post('/api/lead', wrap(async (q, r) => {
   if (++leadHits > 20) return r.status(429).json({ error: 'Too many requests' });
   const b = q.body || {};
   await db.query('INSERT INTO leads (type, name, email, phone, budget, msg) VALUES ($1,$2,$3,$4,$5,$6)',
-    [clip(b.type, 20), clip(b.name, 80), clip(b.email, 120), clip(b.phone, 40), clip(b.budget, 200), clip(b.msg, 1000)]);
+    [b.type === 'clipper' ? 'clipper' : 'customer', clip(b.name, 80), clip(b.email, 120), clip(b.phone, 40), clip(b.budget, 200), clip(b.msg, 1000)]);
   r.json({ ok: true });
 }));
 
 app.get('/api/leads', auth, wrap(async (q, r) => {
-  const { rows } = await db.query('SELECT at, type, name, email, phone, budget, msg FROM leads ORDER BY id DESC LIMIT 1000');
+  const { rows } = await db.query('SELECT id, at, type, name, email, phone, budget, msg, seen FROM leads ORDER BY id DESC LIMIT 1000');
   r.json(rows);
 }));
 
@@ -104,6 +104,8 @@ app.get('/blog/:slug', wrap(async (q, r) => {
       author: { '@type': 'Person', name: 'Ahtisham' }, publisher: { '@type': 'Organization', name: 'SIDQ Creative' } } }));
 }));
 
+app.post('/api/leads/seen', auth, wrap(async (q, r) => { await db.query('UPDATE leads SET seen = true WHERE type = $1', [clip(q.body.type, 20)]); r.json({ ok: true }); }));
+app.delete('/api/leads/:id', auth, wrap(async (q, r) => { await db.query('DELETE FROM leads WHERE id = $1', [+q.params.id || 0]); r.json({ ok: true }); }));
 app.get('/api/posts', auth, wrap(async (q, r) => r.json((await db.query('SELECT id, slug, title FROM posts ORDER BY at DESC')).rows)));
 app.post('/api/posts', auth, wrap(async (q, r) => {
   const b = q.body || {}, slug = clip(b.title, 80).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -122,6 +124,7 @@ app.use(express.static(path.join(__dirname, 'public')));
     CREATE TABLE IF NOT EXISTS content (id INT PRIMARY KEY, data JSONB NOT NULL);
     CREATE TABLE IF NOT EXISTS leads (id SERIAL PRIMARY KEY, at TIMESTAMPTZ NOT NULL DEFAULT now(),
       type TEXT, name TEXT, email TEXT, phone TEXT, budget TEXT, msg TEXT);
+    ALTER TABLE leads ADD COLUMN IF NOT EXISTS seen BOOLEAN NOT NULL DEFAULT false;
     CREATE TABLE IF NOT EXISTS posts (id SERIAL PRIMARY KEY, slug TEXT UNIQUE NOT NULL, title TEXT NOT NULL,
       descr TEXT, body TEXT NOT NULL, at TIMESTAMPTZ NOT NULL DEFAULT now());`);
   app.listen(process.env.PORT || 3000, () => console.log('SIDQ Creative is running'));
