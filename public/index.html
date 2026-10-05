@@ -85,17 +85,37 @@ body.cur,body.cur a,body.cur button,body.cur .car>div{cursor:none}body.cur input
 .logo3d{width:min(260px,56vw);height:auto;transform:perspective(900px) rotateX(var(--hx,0deg)) rotateY(var(--hy,0deg));transition:transform .15s;filter:drop-shadow(0 20px 40px #b7e22233)}
 @media(prefers-reduced-motion:no-preference){.logo3d{animation:fl 5s ease-in-out infinite alternate}}
 @keyframes fl{to{translate:0 -12px}}
+html{scroll-padding-top:90px}
+nav{background:linear-gradient(#ffffff14,#ffffff05),#050505d9;border-color:#ffffff1f;box-shadow:0 12px 34px #000a,inset 0 1px 0 #ffffff26;backdrop-filter:blur(16px) saturate(1.4)}
+nav div{gap:4px}
+nav div a{position:relative;padding:8px 14px;border-radius:99px;transition:color .2s,background .2s}
+nav div a:hover{color:#fff;background:#ffffff0f}
+.r{display:inline-block;overflow:hidden;height:1.4em;line-height:1.4em;vertical-align:bottom}
+.r>i{display:block;color:inherit;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.r>i::after{content:attr(data-l);display:block;color:#fff}
+nav div a:hover .r>i{transform:translateY(-50%)}
+nav div a.act{color:#fff}
+nav div a.act::before{content:"";position:absolute;left:50%;bottom:1px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#b7e222;box-shadow:0 0 10px #b7e222}
+.btn.go{background:linear-gradient(#d6f55c,#b7e222);color:#000;box-shadow:0 4px 0 #7c9a10,0 10px 24px #b7e22244;transition:transform .15s,box-shadow .15s}
+.btn.go:hover{transform:translateY(-2px);box-shadow:0 6px 0 #7c9a10,0 14px 30px #b7e22255}
+.btn.go:active{transform:translateY(3px);box-shadow:0 1px 0 #7c9a10}
+.mb{display:none;background:none;border:1px solid #333;color:#fff;border-radius:99px;width:40px;height:40px;font-size:18px;cursor:pointer}
+#fimg{position:relative;overflow:hidden;transition:box-shadow .4s}
+#fimg i{position:absolute;inset:0;background:center/cover;opacity:0;transition:opacity .6s}
+.fc:hover #fimg i{opacity:1}.fc:hover #fimg{box-shadow:0 0 50px #b7e22233}
+@media(hover:none){#fimg i{opacity:1}}
+@media(max-width:640px){.mb{display:block}nav.open div{display:flex;position:absolute;top:calc(100% + 10px);left:0;right:0;flex-direction:column;padding:14px;border:1px solid #ffffff1f;border-radius:24px;background:#050505f2}}
 </style>
 </head>
 <body>
 <div class="glow"></div>
-<nav><a class="brand" href="#top"><img src="/logo-mark.png" width="32" height="32" alt="SIDQ Creative logo"><b>SIDQ<i> CREATIVE</i></b></a><div><a href="#why">Services</a><a href="#process">Process</a><a href="#apply">Contact</a><a href="/blog">Blog</a></div><a class="btn" href="#apply">Get started</a></nav>
+<nav><a class="brand" href="#top"><img src="/logo-mark.png" width="32" height="32" alt="SIDQ Creative logo"><b>SIDQ<i> CREATIVE</i></b></a><div id="menu"><a href="#why"><span class="r"><i data-l="Services">Services</i></span></a><a href="#shorts"><span class="r"><i data-l="Work">Work</i></span></a><a href="#process"><span class="r"><i data-l="Process">Process</i></span></a><a href="/blog"><span class="r"><i data-l="Blog">Blog</i></span></a><a href="#apply"><span class="r"><i data-l="Contact">Contact</i></span></a></div><a class="btn go" href="#apply">Get started</a><button class="mb" aria-label="Menu" aria-expanded="false">&#9776;</button></nav>
 
 <section class="hero" id="top">
   <img class="logo3d" src="/logo.webp" alt="SIDQ Creative 3D logo" width="260" height="272" fetchpriority="high">
   <h1><span data-t="heroA">BE EVERYWHERE.</span><span data-t="heroB">ALL AT ONCE.</span></h1>
   <p data-t="sub"></p>
-  <div class="row"><a class="btn" href="#apply">Start working with us</a><a class="btn o" id="work" href="#shorts">See our work</a></div>
+  <div class="row"><a class="btn go" href="#apply">Start working with us</a><a class="btn o" id="work" href="#shorts">See our work</a></div>
 </section>
 
 <section><div class="stats" id="stats"></div></section>
@@ -129,7 +149,7 @@ body.cur,body.cur a,body.cur button,body.cur .car>div{cursor:none}body.cur input
 <section id="founder">
   <h2>Meet the founder</h2>
   <div class="fc">
-    <div id="fimg" role="img" aria-label="Founder photo"></div>
+    <div id="fimg" role="img" aria-label="Founder Ahtisham"><i></i></div>
     <div><h3 data-t="fName"></h3><p data-t="fRole"></p>
       <div class="fs"><div><b data-t="f1"></b><small data-t="f1l"></small></div><div><b data-t="f2"></b><small data-t="f2l"></small></div></div>
     </div>
@@ -145,7 +165,7 @@ body.cur,body.cur a,body.cur button,body.cur .car>div{cursor:none}body.cur input
     <label>Phone or WhatsApp<input name="phone" maxlength="40"></label>
     <label><span id="bl">Budget</span><input name="budget" maxlength="200"></label>
     <label class="full">Message (optional)<textarea name="msg" rows="4" maxlength="1000"></textarea></label>
-    <button class="btn">Send application</button>
+    <button class="btn go">Send application</button>
     <p id="fm" role="status"></p>
   </form>
 </section>
@@ -162,8 +182,8 @@ fetch('/api/content').then(r=>r.json()).then(d=>{
   $('#em').href='mailto:'+d.t.email;
   $('#stats').innerHTML=d.stats.map(()=>'<div><b></b><small></small></div>').join('');
   d.stats.forEach((s,i)=>{const e=$('#stats').children[i];e.firstChild.textContent=s.v;e.lastChild.textContent=s.l});
-  $('#fimg').hidden=!d.t.fImg;
-  if(d.t.fImg)$('#fimg').style.backgroundImage=`url("${encodeURI(d.t.fImg)}")`;
+  const bw=d.t.fImg||'/founder-bw.jpg',co=d.t.fImg2||'/founder-color.jpg';
+  $('#fimg').style.backgroundImage=`url("${encodeURI(bw)}")`;$('#fimg i').style.backgroundImage=`url("${encodeURI(co)}")`;
   const cap=c=>c?`<span class="cap">${esc(c)}</span>`:'';
   const items=d.shorts.map(l=>{const[u,c='']=String(l).split('|').map(s=>s.trim());const y=(u.match(/(?:shorts\/|v=|youtu\.be\/)([\w-]{11})/)||[])[1];
     if(y)return`<div data-id="${y}" style="background-image:url(https://img.youtube.com/vi/${y}/hqdefault.jpg)">${cap(c)}</div>`;
@@ -210,6 +230,13 @@ if(matchMedia('(hover:hover) and (pointer:fine)').matches){
     el.addEventListener('mousemove',e=>{const b=el.getBoundingClientRect();el.style.setProperty('--ry',((e.clientX-b.left)/b.width-.5)*10+'deg');el.style.setProperty('--rx',(.5-(e.clientY-b.top)/b.height)*10+'deg')});
     el.addEventListener('mouseleave',()=>{el.style.setProperty('--rx','0deg');el.style.setProperty('--ry','0deg')})});
 }
+// menu: mobile toggle and dot under the section you are reading
+const nv=$('nav'),mb=$('.mb');
+mb.onclick=()=>mb.setAttribute('aria-expanded',nv.classList.toggle('open'));
+$('#menu').onclick=()=>nv.classList.remove('open');
+const nl=[...document.querySelectorAll('#menu a[href^="#"]')];
+const spy=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)nl.forEach(a=>a.classList.toggle('act',a.getAttribute('href')==='#'+e.target.id))}),{rootMargin:'-45% 0px -50% 0px'});
+['why','shorts','process','apply'].forEach(id=>{const s=document.getElementById(id);if(s)spy.observe(s)});
 </script>
 </body>
 </html>

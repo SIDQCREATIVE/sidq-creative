@@ -16,6 +16,7 @@ table{width:100%;font-size:13px;border-collapse:collapse}
 td{border-top:1px solid #222;padding:8px 6px;vertical-align:top;word-break:break-word}
 #msg{color:#b7e222;margin-left:12px}#le{color:#f87171;margin-left:12px}
 .bar{position:sticky;bottom:0;background:#0a0a0af0;padding:14px 0}
+.tabs2{display:flex;gap:8px;margin:8px 0 12px}.tabs2 button{background:#151515;color:#fff;border:1px solid #333}.tabs2 button.on{background:#b7e222;color:#000}.tabs2 b{background:#f87171;color:#000;border-radius:99px;padding:0 8px;margin-left:6px}.tabs2 b:empty{display:none}
 </style>
 </head>
 <body>
@@ -37,12 +38,13 @@ td{border-top:1px solid #222;padding:8px 6px;vertical-align:top;word-break:break
   <button id="bp">Publish post</button><span id="bm" role="status"></span>
   <div id="bl"></div>
   <h2>Applications</h2>
+  <div class="tabs2"><button data-k="customer">For customers <b id="nc"></b></button><button data-k="clipper">For clippers <b id="nk"></b></button></div>
   <div id="ls"></div>
 </div>
 
 <script>
 const $=s=>document.querySelector(s);
-const L={heroA:'Hero line 1 (white)',heroB:'Hero line 2 (grey)',sub:'Hero paragraph',whyH:'Why section title',why:'Why section text',fName:'Founder name',fRole:'Founder title',f1:'Founder number 1',f1l:'Number 1 label',f2:'Founder number 2',f2l:'Number 2 label',fImg:'Founder photo link (optional)',email:'Contact email'};
+const L={heroA:'Hero line 1 (white)',heroB:'Hero line 2 (grey)',sub:'Hero paragraph',whyH:'Why section title',why:'Why section text',fName:'Founder name',fRole:'Founder title',f1:'Founder number 1',f1l:'Number 1 label',f2:'Founder number 2',f2l:'Number 2 label',fImg:'Founder photo, black and white',fImg2:'Founder photo, color (shows on hover)',email:'Contact email'};
 let tok=sessionStorage.k,D;
 const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const api=(u,m='GET',b)=>fetch(u,{method:m,headers:{'Content-Type':'application/json','x-token':tok||''},body:b&&JSON.stringify(b)})
@@ -53,13 +55,11 @@ async function load(){
     const ls=await api('/api/leads');D=await api('/api/content');
     $('#lg').hidden=true;$('#ed').hidden=false;
     $('#f').innerHTML='<h2>Texts</h2>'
-      +Object.keys(D.t).map(k=>`<label>${L[k]||k}<input data-k="${k}" value="${esc(D.t[k])}"></label>`).join('')
+      +[...new Set([...Object.keys(D.t),'fImg','fImg2'])].map(k=>`<label>${L[k]||k}<input data-k="${k}" value="${esc(D.t[k]||'')}"></label>`).join('')
       +'<h2>Numbers</h2>'
       +D.stats.map((s,i)=>`<div class="r"><label>Number<input data-v="${i}" value="${esc(s.v)}"></label><label>Label<input data-l="${i}" value="${esc(s.l)}"></label></div>`).join('')
       +`<h2>Popular shorts carousel</h2><label>One per line: a YouTube Shorts link, or /videos/file.mp4 | Client name (5 to 100)<textarea id="sh" rows="10">${esc(D.shorts.join('\n'))}</textarea></label>`;
-    $('#ls').innerHTML=ls.length
-      ?`<table>${ls.map(l=>`<tr><td>${esc(new Date(l.at).toLocaleString())}<br>${esc(l.type)}</td><td>${esc(l.name)}<br>${esc(l.email)}<br>${esc(l.phone)}</td><td>${esc(l.budget)}<br>${esc(l.msg)}</td></tr>`).join('')}</table>`
-      :'<p>No applications yet.</p>';
+    LS=ls;showLeads();
     posts();
   }catch(e){$('#ed').hidden=true;$('#lg').hidden=false;if(tok)$('#le').textContent=e}
 }
@@ -79,6 +79,17 @@ $('#sv').onclick=async()=>{
   catch(e){$('#msg').textContent=e}
 };
 
+let LS=[],tab='customer',T;
+function badge(){const n=t=>LS.filter(l=>l.type===t&&!l.seen).length,c=n('customer'),k=n('clipper');
+  $('#nc').textContent=c||'';$('#nk').textContent=k||'';document.title=(c+k?'('+(c+k)+') ':'')+'SIDQ Creative admin'}
+function showLeads(){
+  badge();document.querySelectorAll('.tabs2 button').forEach(b=>b.classList.toggle('on',b.dataset.k===tab));
+  const rows=LS.filter(l=>l.type===tab);
+  $('#ls').innerHTML=rows.length?`<table>${rows.map(l=>`<tr><td>${l.seen?'':'<b style="color:#b7e222">NEW</b><br>'}${esc(new Date(l.at).toLocaleString())}</td><td>${esc(l.name)}<br>${esc(l.email)}<br>${esc(l.phone)}</td><td>${tab==='clipper'?'Edits: ':'Budget: '}${esc(l.budget)}<br>${esc(l.msg)}</td><td><button data-dl="${l.id}" style="padding:4px 12px;background:#7f1d1d;color:#fff">Delete</button></td></tr>`).join('')}</table>`:'<p>No applications yet.</p>';
+  clearTimeout(T);T=setTimeout(async()=>{if(LS.some(l=>l.type===tab&&!l.seen)){const t=tab;try{await api('/api/leads/seen','POST',{type:t});LS.forEach(l=>{if(l.type===t)l.seen=true});badge()}catch{}}},4000)}
+document.querySelectorAll('.tabs2 button').forEach(b=>b.onclick=()=>{tab=b.dataset.k;showLeads()});
+$('#ls').onclick=async e=>{const id=e.target.dataset.dl;if(id&&confirm('Delete this application?')){await api('/api/leads/'+id,'DELETE');LS=LS.filter(l=>l.id!=id);showLeads()}};
+setInterval(async()=>{if(!tok||$('#ed').hidden)return;try{LS=await api('/api/leads');showLeads()}catch{}},30000);
 async function posts(){const p=await api('/api/posts');$('#bl').innerHTML=p.map(x=>`<p><a style="color:#b7e222" href="/blog/${esc(x.slug)}" target="_blank">${esc(x.title)}</a> <button data-del="${x.id}" style="padding:4px 12px;background:#7f1d1d;color:#fff">Delete</button></p>`).join('')}
 $('#bp').onclick=async()=>{try{const r=await api('/api/posts','POST',{title:$('#bt').value,descr:$('#bd').value,body:$('#bb').value});$('#bm').textContent='Published: /blog/'+r.slug;['bt','bd','bb'].forEach(i=>$('#'+i).value='');posts()}catch(e){$('#bm').textContent=e}};
 $('#bl').onclick=async e=>{const id=e.target.dataset.del;if(id&&confirm('Delete this post?')){await api('/api/posts/'+id,'DELETE');posts()}};
