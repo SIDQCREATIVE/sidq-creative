@@ -17,7 +17,9 @@ const DEFAULT = {
     whyH: 'Why short content',
     why: 'Attention is the new currency. Short videos win on every platform and grow your audience faster than any other format.',
     fName: 'Ahtisham', fRole: 'Founder', f1: '100K', f1l: 'Subscribers', f2: '30M+', f2l: 'Gaming views', fImg: '/founder-bw.jpg', fImg2: '/founder-color.jpg',
-    email: 'hello@sidqcreative.com'
+    email: 'hello@sidqcreative.com',
+    p1: '$1,000 – $2,000 / month', p2: '$0.50 – $2.50+ CPM', p3: '$4,000 – $8,000+ / month',
+    wa: '447362449938', ig: 'sidqcreative', whop: 'https://whop.com/sidq-creative/', discord: ''
   },
   stats: [
     { v: '100M+', l: 'Views generated' }, { v: '1K+', l: 'Public clippers' },
