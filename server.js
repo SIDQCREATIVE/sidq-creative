@@ -79,7 +79,7 @@ const site = q => (process.env.SITE_URL || q.protocol + '://' + q.get('host')).r
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';');
 const md = t => String(t).split(/\n{2,}/).map(b => /^## /.test(b) ? `<h2>${esc(b.slice(3))}</h2>` : `<p>${esc(b).replace(/\n/g, '<br>')}</p>`).join('');
 const CSS = 'body{background:#000;color:#fff;font:18px/1.7 system-ui,sans-serif;max-width:720px;margin:auto;padding:32px 20px}a{color:#b7e222}h1{font-size:clamp(32px,6vw,52px);line-height:1.05;letter-spacing:-.03em}h2{margin-top:1.8em;line-height:1.2}small{color:#8f8f8f}article{border-top:1px solid #242424;padding:22px 0}';
-const page = (q, o) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(o.title)}</title><meta name="description" content="${esc(o.desc)}"><link rel="canonical" href="${site(q)}${o.path}"><meta property="og:title" content="${esc(o.title)}"><meta property="og:description" content="${esc(o.desc)}"><meta property="og:url" content="${site(q)}${o.path}"><meta property="og:type" content="${o.ld ? 'article' : 'website'}">${o.ld ? `<script type="application/ld+json">${JSON.stringify(o.ld).replace(/</g, '\\u003c')}</script>` : ''}<link rel="icon" href="/favicon.png"><style>${CSS}</style></head><body><p><a href="/">SIDQ Creative</a> | <a href="/blog">Blog</a></p>${o.body}</body></html>`;
+const page = (q, o) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(o.title)}</title><meta name="description" content="${esc(o.desc)}"><link rel="canonical" href="${site(q)}${o.path}"><meta property="og:title" content="${esc(o.title)}"><meta property="og:description" content="${esc(o.desc)}"><meta property="og:url" content="${site(q)}${o.path}"><meta property="og:type" content="${o.ld ? 'article' : 'website'}">${o.ld ? `<script type="application/ld+json">${JSON.stringify(o.ld).replace(/</g, '\\u003c')}</script>` : ''}<link rel="icon" href="/favicon.png"><style>${CSS}</style></head><body><p><a href="/">SIDQ Creative</a> | <a href="/blog">Blog</a></p>${o.body}<p style="margin-top:3em"><a href="/#apply"><b>Work with SIDQ Creative</b></a> | <a href="/blog">More articles</a></p></body></html>`;
 
 app.get('/', (q, r) => r.type('html').send(home.split('%SITE%').join(site(q))));
 app.get('/robots.txt', (q, r) => r.type('text').send(`User-agent: *\nAllow: /\nDisallow: /admin\nSitemap: ${site(q)}/sitemap.xml\n`));
@@ -119,6 +119,99 @@ app.delete('/api/posts/:id', auth, wrap(async (q, r) => { await db.query('DELETE
 app.get('/admin', (q, r) => r.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.use(express.static(path.join(__dirname, 'public')));
 
+const SEED = [
+['OpusClip vs a Clipping Agency: Which One Fits Your Channel?', 'OpusClip is an AI clipping tool. A clipping agency uses people. Learn when each one is the better choice.', `OpusClip is an AI tool that cuts a long video into short clips automatically. A clipping agency does the same job with a team of people. Both can work, but they suit different creators.
+
+## What an AI clipping tool does well
+
+It is fast and low cost. You upload a video and get many clips in minutes. It suits creators who want a quick first draft and have time to review every clip.
+
+## Where a clipping agency is stronger
+
+A human editor understands your audience, your humor and your brand. An agency picks the moments that fit your channel, edits them with care, and can also post the clips and track results.
+
+## Which should you choose?
+
+Choose a tool if your budget is small and you are happy to do the checking yourself. Choose an agency if you want finished clips without the work and someone responsible for the result. SIDQ Creative gives you that team: send one long video and we turn it into short clips ready to upload.`],
+['Submagic vs Human Editors: Where Each One Wins', 'Submagic is an AI tool for captions and effects. Human editors add judgment. See how they compare.', `Submagic is an AI tool that adds captions and effects to short videos. Human editors do more than captions. Here is where each one wins.
+
+## What Submagic-style tools do well
+
+Auto captions, quick effects and fast turnaround. They save time on the repetitive parts of editing.
+
+## What human editors add
+
+Editors decide which moment to cut, how to open with a strong hook, how fast the pacing should be and which graphics help the story. These choices keep people watching.
+
+## The best of both
+
+At SIDQ Creative we use AI for speed and people for polish. The tool handles the repeat work, and our editors make sure every clip fits your brand and holds attention.`],
+['Clipping Agency vs Ads Marketing: Which Grows Your Brand Faster?', 'Ads buy attention. Clipping builds it. See how the two compare for creators and brands.', `Paid ads and clipping both bring attention, but in different ways.
+
+## How ads work
+
+You pay for each view or click. Results start fast and stop when the budget stops.
+
+## How clipping works
+
+Clippers turn your existing long videos into many short clips and post them on many pages. Each clip can keep getting views after it is posted, and you build a library of content instead of renting attention.
+
+## Which is better for your brand?
+
+Ads suit a product launch or a sale with a clear deadline. Clipping suits creators, podcasts and brands that want steady organic growth. Many brands use both: ads for quick pushes and clipping for long-term reach. If you already make long videos, clipping is often the better first step.`],
+['What Is a Clipping Agency and How Does It Work?', 'A clipping agency turns long videos into short clips. Learn how the process works from upload to posting.', `A clipping agency turns long videos, such as podcasts, streams and YouTube videos, into short clips for platforms like YouTube Shorts, Instagram Reels and TikTok.
+
+## What the work looks like
+
+First, the team finds the strongest moments in your video. Then editors cut them, add captions and graphics, and prepare each clip for every platform. Finally the clips are posted by the agency or by a network of clippers.
+
+## Who needs one?
+
+Podcasters, streamers, coaches and brands that already record long content but do not have time to make shorts.
+
+## How SIDQ Creative works
+
+You send raw footage. We find the best parts, edit them and deliver clips that are ready to upload. One long video can become many shorts.`],
+['Private Clipping vs Public Clipping: What Is the Difference?', 'Private clipping uses a dedicated team. Public clipping uses an open network. Learn which one fits you.', `Clipping agencies often offer two models: private clipping and public clipping.
+
+## Private clipping
+
+A small, trusted team works only on your content. They learn your style, follow your rules and edit with consistent quality. This is best when your brand needs control.
+
+## Public clipping
+
+An open network of clippers makes and posts clips of your content on their own pages. You reach many audiences at once, and the network can post at a large scale.
+
+## Which one is right for you?
+
+Choose private for quality and control. Choose public for reach. Many creators use both. SIDQ Creative runs both a private team and a public clipper network, so you can start with one and add the other.`],
+['How to Choose a Clipping Agency: 4 Services to Compare', 'Not every clipping agency offers the same services. Here is what to compare before you hire one.', `Not every clipping agency offers the same services. Before you hire one, check what they actually do.
+
+## Services to look for
+
+Private clipping: a dedicated team for your content.
+
+Public clipping: a large network that spreads your clips.
+
+Short-form editing: pro editing with captions, pacing and graphics.
+
+Short-form editing plus content writing: edited clips with hooks, titles and captions written for you.
+
+## Questions to ask
+
+How do they find the best moments? Who edits the clips? Can you see examples? How do they report results?
+
+## Why choose SIDQ Creative
+
+We offer all four services, so you do not need to hire separate teams. Tell us what you need and we build a plan around it.`]
+];
+const slugify = t => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+async function seed() {
+  if ((await db.query('SELECT 1 FROM content WHERE id = 2')).rowCount) return;
+  for (const [t, d, b] of SEED) await db.query('INSERT INTO posts (slug, title, descr, body) VALUES ($1,$2,$3,$4) ON CONFLICT (slug) DO NOTHING', [slugify(t), t, d, b]);
+  await db.query(`INSERT INTO content (id, data) VALUES (2, '{"seeded":true}') ON CONFLICT (id) DO NOTHING`);
+}
+
 (async () => {
   await db.query(`
     CREATE TABLE IF NOT EXISTS content (id INT PRIMARY KEY, data JSONB NOT NULL);
@@ -127,5 +220,6 @@ app.use(express.static(path.join(__dirname, 'public')));
     ALTER TABLE leads ADD COLUMN IF NOT EXISTS seen BOOLEAN NOT NULL DEFAULT false;
     CREATE TABLE IF NOT EXISTS posts (id SERIAL PRIMARY KEY, slug TEXT UNIQUE NOT NULL, title TEXT NOT NULL,
       descr TEXT, body TEXT NOT NULL, at TIMESTAMPTZ NOT NULL DEFAULT now());`);
+  await seed();
   app.listen(process.env.PORT || 3000, () => console.log('SIDQ Creative is running'));
 })().catch(e => { console.error('Database error:', e.message); process.exit(1); });
