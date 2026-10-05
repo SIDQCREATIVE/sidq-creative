@@ -7,6 +7,8 @@
 <meta name="description" content="SIDQ Creative is a short-form clipping agency. We turn podcasts, streams and long videos into viral short clips, backed by 1K+ public clippers and 100M+ views generated.">
 <meta name="theme-color" content="#000000">
 <link rel="canonical" href="%SITE%/">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/24.6.0/build/css/intlTelInput.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/24.6.0/build/js/intlTelInput.min.js" defer></script>
 <link rel="icon" href="/favicon.png" type="image/png"><link rel="apple-touch-icon" href="/logo-mark.png">
 <meta property="og:type" content="website"><meta property="og:site_name" content="SIDQ Creative">
 <meta property="og:title" content="SIDQ Creative | Short-Form Video Clipping Agency"><meta property="og:url" content="%SITE%/">
@@ -105,11 +107,40 @@ nav div a.act::before{content:"";position:absolute;left:50%;bottom:1px;width:5px
 .fc:hover #fimg i{opacity:1}.fc:hover #fimg{box-shadow:0 0 50px #b7e22233}
 @media(hover:none){#fimg i{opacity:1}}
 @media(max-width:640px){.mb{display:block}nav.open div{display:flex;position:absolute;top:calc(100% + 10px);left:0;right:0;flex-direction:column;padding:14px;border:1px solid #ffffff1f;border-radius:24px;background:#050505f2}}
+section.pin{padding:0;max-width:none}
+.track{height:420vh}
+.stage{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;justify-content:center;padding:90px 24px 40px;max-width:1100px;margin:auto}
+.stage h2{position:absolute;top:104px;left:24px;margin:0;font-size:clamp(22px,3vw,34px);color:var(--m)}
+.cards{position:relative;height:min(460px,60vh);perspective:1200px;margin-top:40px}
+.st{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;opacity:0;transform:translateY(60px) rotateX(-14deg) scale(.94);filter:blur(8px);transition:opacity .6s,transform .7s cubic-bezier(.2,.8,.2,1),filter .6s;pointer-events:none}
+.st.on{opacity:1;transform:none;filter:none}
+.st.past{transform:translateY(-60px) rotateX(14deg) scale(.94)}
+.no{display:block;font-size:clamp(90px,14vw,170px);font-weight:900;line-height:.9;color:transparent;-webkit-text-stroke:1px #b7e222}
+.tx h3{font-size:clamp(28px,4vw,46px);margin:10px 0;letter-spacing:-.02em}.tx p{color:var(--m);font-size:19px;max-width:420px}
+.vis{display:grid;place-items:center}
+.c3{width:min(300px,70vw);aspect-ratio:1;border:1px solid #ffffff26;border-radius:32px;background:linear-gradient(145deg,#1c1c1c,#080808);box-shadow:0 40px 70px #000,0 0 70px #b7e22222,inset 0 1px 0 #ffffff22;display:grid;place-content:center;gap:12px;text-align:center;transform:rotateY(-16deg) rotateX(8deg)}
+.c3 b{font-size:64px;line-height:1}.c3 .gr{background:#b7e222;color:#000;border-radius:14px;padding:10px 20px;font-size:34px}
+.c3 small{letter-spacing:.14em;color:var(--m)}
+.c3 .wave{height:120px;gap:8px;margin:0;justify-content:center}.c3 .wave i{width:12px}
+.pg{height:2px;background:#222;margin-top:30px}.pg i{display:block;width:0;height:100%;background:#b7e222;box-shadow:0 0 12px #b7e222}
+@media(prefers-reduced-motion:no-preference){.st.on .c3{animation:fl 4s ease-in-out infinite alternate}}
+@media(prefers-reduced-motion:reduce){.st{transition:none}}
+@media(max-width:700px){.st{grid-template-columns:1fr;gap:10px;align-content:center}.vis{order:-1}.c3{width:150px}.no{font-size:70px}.track{height:360vh}}
+details{border-top:1px solid var(--l);padding:20px 0}details:last-of-type{border-bottom:1px solid var(--l)}
+summary{cursor:pointer;font-weight:600;font-size:20px;list-style:none}summary::-webkit-details-marker{display:none}
+summary::after{content:"+";float:right;color:#b7e222;font-size:26px;line-height:1}details[open] summary::after{content:"\2212"}
+details p{color:var(--m);margin-top:10px;max-width:700px}
+.iti{width:100%}
+.iti__selected-dial-code,.iti__dial-code{color:#fff}
+.iti__dropdown-content{background:#0c0c0c;border:1px solid #333;color:#fff}
+.iti__search-input{background:#151515;color:#fff;border:0;border-bottom:1px solid #333}
+.iti__country.iti__highlight{background:#1d1d1d}
+.iti__selected-country:hover,.iti__selected-country:focus{background:#ffffff0f}
 </style>
 </head>
 <body>
 <div class="glow"></div>
-<nav><a class="brand" href="#top"><img src="/logo-mark.png" width="32" height="32" alt="SIDQ Creative logo"><b>SIDQ<i> CREATIVE</i></b></a><div id="menu"><a href="#why"><span class="r"><i data-l="Services">Services</i></span></a><a href="#shorts"><span class="r"><i data-l="Work">Work</i></span></a><a href="#process"><span class="r"><i data-l="Process">Process</i></span></a><a href="/blog"><span class="r"><i data-l="Blog">Blog</i></span></a><a href="#apply"><span class="r"><i data-l="Contact">Contact</i></span></a></div><a class="btn go" href="#apply">Get started</a><button class="mb" aria-label="Menu" aria-expanded="false">&#9776;</button></nav>
+<nav><a class="brand" href="#top"><img src="/logo-mark.png" width="32" height="32" alt="SIDQ Creative logo"><b>SIDQ<i> CREATIVE</i></b></a><div id="menu"><a href="#services"><span class="r"><i data-l="Services">Services</i></span></a><a href="#shorts"><span class="r"><i data-l="Work">Work</i></span></a><a href="#process"><span class="r"><i data-l="Process">Process</i></span></a><a href="/blog"><span class="r"><i data-l="Blog">Blog</i></span></a><a href="#apply"><span class="r"><i data-l="Contact">Contact</i></span></a></div><a class="btn go" href="#apply">Get started</a><button class="mb" aria-label="Menu" aria-expanded="false">&#9776;</button></nav>
 
 <section class="hero" id="top">
   <img class="logo3d" src="/logo.webp" alt="SIDQ Creative 3D logo" width="260" height="272" fetchpriority="high">
@@ -119,6 +150,16 @@ nav div a.act::before{content:"";position:absolute;left:50%;bottom:1px;width:5px
 </section>
 
 <section><div class="stats" id="stats"></div></section>
+
+<section id="services">
+  <h2>Our services</h2><p class="lead">Pick one service or combine them.</p>
+  <div class="grid">
+    <article><h3>Private clipping</h3><p>A vetted private team works only on your content.</p></article>
+    <article><h3>Public clipping</h3><p>Our open network of clippers posts your clips on many pages.</p></article>
+    <article><h3>Short-form editing</h3><p>Pro editors turn your footage into fast, captioned shorts.</p></article>
+    <article><h3>Editing + content writing</h3><p>Edited shorts plus hooks, titles and captions written for you.</p></article>
+  </div>
+</section>
 
 <section id="why">
   <h2 data-t="whyH"></h2><p class="lead" data-t="why"></p>
@@ -136,14 +177,17 @@ nav div a.act::before{content:"";position:absolute;left:50%;bottom:1px;width:5px
   <div class="row"><button class="btn o" id="pv">Back</button><button class="btn o" id="nx">Next</button></div>
 </section>
 
-<section id="process">
-  <h2>How it works</h2>
-  <ol class="steps">
-    <li><h3>Send your raw footage</h3><p>Upload the long video. No prep needed.</p></li>
-    <li><h3>We find the best moments</h3><p>We look for strong hooks and moments people keep watching.</p><div class="wave" aria-hidden="true"></div></li>
-    <li><h3>Pro editors cut it</h3><p>Fast pacing, captions and graphics on every clip.</p></li>
-    <li><h3>Ready to upload</h3><p>Get finished shorts for every major platform.</p></li>
-  </ol>
+<section id="process" class="pin">
+  <div class="track"><div class="stage">
+    <h2>How it works</h2>
+    <div class="cards">
+      <div class="st on"><div class="tx"><span class="no">01</span><h3>Send your raw footage</h3><p>Upload the long video. No prep needed.</p></div><div class="vis"><div class="c3"><b>&#8595;</b><small>RAW_FOOTAGE.MP4</small></div></div></div>
+      <div class="st"><div class="tx"><span class="no">02</span><h3>We find the best moments</h3><p>We look for strong hooks and moments people keep watching.</p></div><div class="vis"><div class="c3"><div class="wave" aria-hidden="true"></div><small>BEST PART</small></div></div></div>
+      <div class="st"><div class="tx"><span class="no">03</span><h3>Pro editors cut it</h3><p>Fast pacing, captions and graphics on every clip.</p></div><div class="vis"><div class="c3"><b>&#9986;</b><small>CLIP 1 &middot; CLIP 2 &middot; CLIP 3</small></div></div></div>
+      <div class="st"><div class="tx"><span class="no">04</span><h3>Ready to upload</h3><p>Get finished shorts for every major platform.</p></div><div class="vis"><div class="c3"><b class="gr">VIRAL</b><small>READY TO POST</small></div></div></div>
+    </div>
+    <div class="pg"><i id="pbar"></i></div>
+  </div></div>
 </section>
 
 <section id="founder">
@@ -156,14 +200,23 @@ nav div a.act::before{content:"";position:absolute;left:50%;bottom:1px;width:5px
   </div>
 </section>
 
+<section id="faq">
+  <h2>Frequently asked questions</h2>
+  <details><summary>What is a clipping agency?</summary><p>We turn long videos such as podcasts and streams into short clips and help them reach more viewers.</p></details>
+  <details><summary>What is the difference between private and public clipping?</summary><p>Private clipping uses a small dedicated team that works only on your content. Public clipping uses a large open network of clippers who post your clips on many pages.</p></details>
+  <details><summary>What do I need to send?</summary><p>Just your raw long video. No prep is needed.</p></details>
+  <details><summary>Do you write hooks, titles and captions?</summary><p>Yes. Our short-form editing plus content writing service includes them.</p></details>
+  <details><summary>How do I start?</summary><p>Fill in the form below and we reply within 24 hours.</p></details>
+</section>
+
 <section id="apply">
   <h2>Work with us</h2><p class="lead">Choose your type and we reply within 24 hours.</p>
   <div class="tabs"><button class="on" data-k="customer">For customers</button><button data-k="clipper">For clippers</button></div>
   <form>
     <label>Name<input name="name" required maxlength="80"></label>
     <label>Email<input name="email" type="email" required maxlength="120"></label>
-    <label>Phone or WhatsApp<input name="phone" maxlength="40"></label>
-    <label><span id="bl">Budget</span><input name="budget" maxlength="200"></label>
+    <label>Phone or WhatsApp<input name="phone" type="tel" maxlength="30"></label>
+    <label><span id="bl">Budget in USD ($)</span><input name="budget" maxlength="200" placeholder="$ 500"></label>
     <label class="full">Message (optional)<textarea name="msg" rows="4" maxlength="1000"></textarea></label>
     <button class="btn go">Send application</button>
     <p id="fm" role="status"></p>
@@ -202,11 +255,13 @@ let type='customer';
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   type=b.dataset.k;
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
-  $('#bl').textContent=type==='customer'?'Budget':'Link to your best edits';
+  $('#bl').textContent=type==='customer'?'Budget in USD ($)':'Link to your best edits';
 });
 $('form').onsubmit=async e=>{
   e.preventDefault();
   const f=Object.fromEntries(new FormData(e.target));f.type=type;
+  if(window.iti)f.phone='+'+iti.getSelectedCountryData().dialCode+' '+f.phone;
+  if(type==='customer'&&f.budget&&/^[\d.,\s]+$/.test(f.budget))f.budget='$'+f.budget.trim()+' USD';
   try{
     const r=await fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(f)});
     if(!r.ok)throw 0;
@@ -216,7 +271,7 @@ $('form').onsubmit=async e=>{
 
 // reveal on scroll
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1});
-document.querySelectorAll('section:not(.hero)').forEach(s=>{s.classList.add('rv');io.observe(s)});
+document.querySelectorAll('section:not(.hero):not(.pin)').forEach(s=>{s.classList.add('rv');io.observe(s)});
 // custom cursor, 3D tilt and glow for mouse users (PC and laptop)
 if(matchMedia('(hover:hover) and (pointer:fine)').matches){
   document.body.classList.add('cur');
@@ -236,7 +291,16 @@ mb.onclick=()=>mb.setAttribute('aria-expanded',nv.classList.toggle('open'));
 $('#menu').onclick=()=>nv.classList.remove('open');
 const nl=[...document.querySelectorAll('#menu a[href^="#"]')];
 const spy=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)nl.forEach(a=>a.classList.toggle('act',a.getAttribute('href')==='#'+e.target.id))}),{rootMargin:'-45% 0px -50% 0px'});
-['why','shorts','process','apply'].forEach(id=>{const s=document.getElementById(id);if(s)spy.observe(s)});
+['services','shorts','process','faq','apply'].forEach(id=>{const s=document.getElementById(id);if(s)spy.observe(s)});
+// scroll-driven "How it works": steps fade and tilt in and out in 3D
+const trk=$('.track'),sts=[...document.querySelectorAll('.st')];
+function prog(){const b=trk.getBoundingClientRect(),p=Math.min(.999,Math.max(0,-b.top/(b.height-innerHeight))),k=Math.floor(p*sts.length);
+  sts.forEach((s,i)=>{s.classList.toggle('on',i===k);s.classList.toggle('past',i<k)});$('#pbar').style.width=(p*100)+'%'}
+addEventListener('scroll',prog,{passive:true});addEventListener('resize',prog);prog();
+// phone field with every country code and a search box
+addEventListener('load',()=>{if(window.intlTelInput)window.iti=intlTelInput($('[name=phone]'),{initialCountry:'us',separateDialCode:true,countrySearch:true})});
+// FAQ structured data for Google
+document.head.appendChild(Object.assign(document.createElement('script'),{type:'application/ld+json',textContent:JSON.stringify({'@context':'https://schema.org','@type':'FAQPage',mainEntity:[...document.querySelectorAll('#faq details')].map(d=>({'@type':'Question',name:d.querySelector('summary').textContent,acceptedAnswer:{'@type':'Answer',text:d.querySelector('p').textContent}}))})}));
 </script>
 </body>
 </html>
