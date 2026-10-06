@@ -1,7 +1,12 @@
-const express = require('express'), fs = require('fs'), path = require('path'), crypto = require('crypto');
+const express = require('express'), compression = require('compression'), fs = require('fs'), path = require('path'), crypto = require('crypto');
 const { Pool } = require('pg');
 const app = express();
 app.set('trust proxy', 1);
+if (process.env.SITE_URL) {  // send www to the main address
+  const main = new URL(process.env.SITE_URL);
+  app.use((q, r, n) => q.get('host') === 'www.' + main.host ? r.redirect(301, main.origin + q.originalUrl) : n());
+}
+app.use(compression());
 
 if (!process.env.DATABASE_URL) {
   console.error('DATABASE_URL is missing. In Railway, add a PostgreSQL database and link DATABASE_URL to this service.');
@@ -65,13 +70,13 @@ app.put('/api/content', auth, wrap(async (q, r) => {
 app.post('/api/lead', wrap(async (q, r) => {
   if (++leadHits > 20) return r.status(429).json({ error: 'Too many requests' });
   const b = q.body || {};
-  await db.query('INSERT INTO leads (type, name, email, phone, budget, msg) VALUES ($1,$2,$3,$4,$5,$6)',
-    [b.type === 'clipper' ? 'clipper' : 'customer', clip(b.name, 80), clip(b.email, 120), clip(b.phone, 40), clip(b.budget, 200), clip(b.msg, 1000)]);
+  await db.query('INSERT INTO leads (type, name, email, phone, budget, msg, src) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+    [b.type === 'clipper' ? 'clipper' : 'customer', clip(b.name, 80), clip(b.email, 120), clip(b.phone, 40), clip(b.budget, 200), clip(b.msg, 1000), clip(b.src, 120)]);
   r.json({ ok: true });
 }));
 
 app.get('/api/leads', auth, wrap(async (q, r) => {
-  const { rows } = await db.query('SELECT id, at, type, name, email, phone, budget, msg, seen FROM leads ORDER BY id DESC LIMIT 1000');
+  const { rows } = await db.query('SELECT id, at, type, name, email, phone, budget, msg, seen, src FROM leads ORDER BY id DESC LIMIT 1000');
   r.json(rows);
 }));
 
@@ -119,7 +124,7 @@ app.post('/api/posts', auth, wrap(async (q, r) => {
 app.delete('/api/posts/:id', auth, wrap(async (q, r) => { await db.query('DELETE FROM posts WHERE id = $1', [+q.params.id || 0]); r.json({ ok: true }); }));
 
 app.get('/admin', (q, r) => r.sendFile(path.join(__dirname, 'public', 'admin.html')));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '7d', index: false }));
 
 const SEED = [
 ['OpusClip vs a Clipping Agency: Which One Fits Your Channel?', 'OpusClip is an AI clipping tool. A clipping agency uses people. Learn when each one is the better choice.', `OpusClip is an AI tool that cuts a long video into short clips automatically. A clipping agency does the same job with a team of people. Both can work, but they suit different creators.
@@ -214,14 +219,90 @@ async function seed() {
   await db.query(`INSERT INTO content (id, data) VALUES (2, '{"seeded":true}') ON CONFLICT (id) DO NOTHING`);
 }
 
+const SEED2 = [
+['How Much Does a Clipping Agency Cost?', 'See what you get with a $1,000 clip retainer, per-view CPM pricing and a $4,000+ B2B pipeline.', `The cost of a clipping agency depends on what you need. Here is how pricing works at SIDQ Creative.
+
+## Clip-only retainer: $1,000 to $2,000 a month
+
+You send long videos and we deliver 20 to 30 vertical shorts a month, with captions, color grading, visual hooks and split-screen framing. You post them on your own channel.
+
+## Per-view pricing (CPM)
+
+With the Managed Distribution Network you do not pay for files. You pay a rate per 1,000 verified views, usually $0.50 to $2.50 or more, up to a monthly limit you set. Our clippers post across 15 to 30 fan channels.
+
+## Full B2B pipeline: $4,000 to $8,000+ a month
+
+For brands that use a podcast to win customers. It includes 20 clips, 4 written LinkedIn breakdowns, account publishing management and a monthly traffic report.
+
+## How to choose
+
+Pick the retainer if you want polished clips for your own channel. Pick CPM if you want reach and prefer to pay for results. Pick the pipeline if your podcast supports sales. Message us on WhatsApp for a quote.`],
+['OpusClip and Submagic Alternatives: When to Hire People Instead', 'Looking for an OpusClip or Submagic alternative? Learn when a human clipping team is the better choice.', `AI tools like OpusClip and Submagic save time. But many creators look for alternatives when the results feel generic.
+
+## Signs a tool is not enough
+
+The clips pick moments that do not fit your style. Captions look the same as everyone else's. You still spend hours reviewing, fixing and posting.
+
+## What a human team adds
+
+Editors choose moments that fit your audience, add pacing and graphics that match your brand, and deliver finished clips. A clipping agency can also post the clips and track results.
+
+## A simple way to decide
+
+Try a tool first if your budget is small. Hire a team when your time is worth more than the tool saves, or when you want a steady stream of clips without managing it. SIDQ Creative packages start at $1,000 a month.`],
+['How to Turn a Podcast Into 30 Shorts', 'A simple 5-step process to cut one long podcast episode into dozens of short clips.', `One podcast episode has enough material for dozens of shorts. Follow this process.
+
+## Step 1: Watch for strong moments
+
+Look for a surprising fact, a strong opinion, a story with a clear ending or a funny reaction. Mark each one with a time.
+
+## Step 2: Start with a hook
+
+The first three seconds decide if people stay. Open with the most interesting sentence, even if it came later in the conversation.
+
+## Step 3: Cut tight
+
+Remove pauses and filler words. Keep each clip focused on one idea.
+
+## Step 4: Add captions and framing
+
+Use clear captions and a vertical layout so the speaker fills the screen.
+
+## Step 5: Post on every platform
+
+Share each clip on YouTube Shorts, Instagram Reels and TikTok.
+
+If you would rather skip the work, send us the episode and our team does all five steps.`],
+['What Is CPM Clipping and How Does It Work?', 'CPM clipping means you pay per 1,000 verified views. Learn how it works and when it makes sense.', `CPM stands for cost per thousand views. In CPM clipping you pay a set rate for every 1,000 verified views your clips earn, instead of a flat fee.
+
+## How it works
+
+You share your long video. A network of clippers cuts it into short clips and posts them across many fan channels. The views are counted, verified and billed at the agreed rate. You can set a monthly limit so your spending never goes over your budget.
+
+## Why creators like it
+
+You pay for delivered views, so the cost follows the results. It also puts your content on many channels at once.
+
+## When it makes sense
+
+It works best for podcasts and creators that already have long videos and want more reach. SIDQ Creative runs this as the Managed Distribution Network, with rates from $0.50 to $2.50 or more per 1,000 views.`]
+];
+async function seed2() {
+  if ((await db.query('SELECT 1 FROM content WHERE id = 3')).rowCount) return;
+  for (const [t, d, b] of SEED2) await db.query('INSERT INTO posts (slug, title, descr, body) VALUES ($1,$2,$3,$4) ON CONFLICT (slug) DO NOTHING', [slugify(t), t, d, b]);
+  await db.query(`INSERT INTO content (id, data) VALUES (3, '{"seeded":2}') ON CONFLICT (id) DO NOTHING`);
+}
+
 (async () => {
   await db.query(`
     CREATE TABLE IF NOT EXISTS content (id INT PRIMARY KEY, data JSONB NOT NULL);
     CREATE TABLE IF NOT EXISTS leads (id SERIAL PRIMARY KEY, at TIMESTAMPTZ NOT NULL DEFAULT now(),
       type TEXT, name TEXT, email TEXT, phone TEXT, budget TEXT, msg TEXT);
     ALTER TABLE leads ADD COLUMN IF NOT EXISTS seen BOOLEAN NOT NULL DEFAULT false;
+    ALTER TABLE leads ADD COLUMN IF NOT EXISTS src TEXT;
     CREATE TABLE IF NOT EXISTS posts (id SERIAL PRIMARY KEY, slug TEXT UNIQUE NOT NULL, title TEXT NOT NULL,
       descr TEXT, body TEXT NOT NULL, at TIMESTAMPTZ NOT NULL DEFAULT now());`);
   await seed();
+  await seed2();
   app.listen(process.env.PORT || 3000, () => console.log('SIDQ Creative is running'));
 })().catch(e => { console.error('Database error:', e.message); process.exit(1); });
