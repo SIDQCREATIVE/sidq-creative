@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Podcast Clipping Agency | SIDQ Creative</title>
-<meta name="description" content="Hire SIDQ Creative to turn podcasts and long videos into viral shorts. Packages from $1,000 a month. Message us on WhatsApp for a quote.">
+<meta name="description" content="Hire SIDQ Creative to turn podcasts and long videos into viral shorts. Message us on WhatsApp for a custom quote.">
 <meta name="theme-color" content="#000000">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","name":"Podcast and short-form video clipping","serviceType":"Video clipping","provider":{"@id":"%SITE%/#org"},"areaServed":"Worldwide","offers":[{"@type":"Offer","name":"Clip-Only Engine","priceCurrency":"USD","price":"1000"},{"@type":"Offer","name":"Managed Distribution Network","priceCurrency":"USD","price":"0.50","description":"Price per 1,000 verified views (CPM)"},{"@type":"Offer","name":"B2B Podcast Pipeline","priceCurrency":"USD","price":"4000"}]}</script>
+<meta name="robots" content="max-image-preview:large,max-snippet:-1">
+<link rel="alternate" type="application/rss+xml" href="/rss.xml">
 <link rel="canonical" href="%SITE%/">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/24.6.0/build/css/intlTelInput.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/24.6.0/build/js/intlTelInput.min.js" defer></script>
@@ -150,18 +151,31 @@ th{color:var(--m);font-weight:600}td:first-child{color:var(--m)}th:nth-child(2),
 .wa{position:fixed;right:18px;bottom:18px;z-index:20;background:#25d366;color:#000;font-weight:700;border-radius:99px;padding:12px 20px;text-decoration:none;box-shadow:0 8px 24px #000a}
 .soc{display:flex;gap:16px}.soc a{color:inherit}
 .mini{color:var(--m);font-size:15px}
+.skip{position:absolute;left:-999px}.skip:focus{left:12px;top:12px;z-index:300;background:#fff;color:#000;padding:8px 14px;border-radius:99px}
+.sp{position:fixed;top:0;left:0;height:3px;width:0;background:#b7e222;z-index:150;box-shadow:0 0 10px #b7e222}
+#intro{position:fixed;inset:0;background:#000;z-index:200;display:grid;place-items:center;animation:ih .5s 1.4s forwards}
+#intro img{width:120px;height:auto;animation:fl 1s ease-in-out infinite alternate}
+@keyframes ih{to{opacity:0;visibility:hidden}}
+@media(prefers-reduced-motion:reduce){#intro{display:none}}
+article h3 a{color:inherit;text-decoration:none}article h3 a:hover{text-decoration:underline}
+.ft{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:32px}.ft div{display:grid;gap:8px;align-content:start}.ft b{color:#fff}.ft p{margin:0}
+.ft a{color:var(--m);text-decoration:none}.ft a:hover{color:#fff}.copy{grid-column:1/-1;border-top:1px solid var(--l);padding-top:20px}
+@media(max-width:700px){.ft{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
+<div id="intro"><img src="/logo.webp" alt="" width="120" height="126"></div>
+<script>if(sessionStorage.i)document.getElementById("intro").remove();else sessionStorage.i=1</script>
+<a class="skip" href="#services">Skip to content</a><div class="sp"></div>
 <div class="glow"></div>
-<nav><a class="brand" href="#top"><img src="/logo-mark.png" width="32" height="32" alt="SIDQ Creative logo"><b>SIDQ<i> CREATIVE</i></b></a><div id="menu"><a href="#services"><span class="r"><i data-l="Services">Services</i></span></a><a href="#shorts"><span class="r"><i data-l="Work">Work</i></span></a><a href="#process"><span class="r"><i data-l="Process">Process</i></span></a><a href="#pricing"><span class="r"><i data-l="Pricing">Pricing</i></span></a><a href="/blog"><span class="r"><i data-l="Blog">Blog</i></span></a><a href="#apply"><span class="r"><i data-l="Contact">Contact</i></span></a></div><a class="btn go" href="#apply">Get started</a><button class="mb" aria-label="Menu" aria-expanded="false">&#9776;</button></nav>
+<nav><a class="brand" href="#top"><img src="/logo-mark.png" width="32" height="32" alt="SIDQ Creative logo"><b>SIDQ<i> CREATIVE</i></b></a><div id="menu"><a href="#services"><span class="r"><i data-l="Services">Services</i></span></a><a href="#shorts"><span class="r"><i data-l="Work">Work</i></span></a><a href="#process"><span class="r"><i data-l="Process">Process</i></span></a><a href="/blog"><span class="r"><i data-l="Blog">Blog</i></span></a><a href="#apply"><span class="r"><i data-l="Contact">Contact</i></span></a></div><a class="btn go" href="#apply">Get started</a><button class="mb" aria-label="Menu" aria-expanded="false">&#9776;</button></nav>
 
 <section class="hero" id="top">
   <img class="logo3d" src="/logo.webp" alt="SIDQ Creative 3D logo" width="260" height="272" fetchpriority="high">
   <h1><span data-t="heroA">BE EVERYWHERE.</span><span data-t="heroB">ALL AT ONCE.</span></h1>
   <p data-t="sub"></p>
   <div class="row"><a class="btn go" href="#apply">Start working with us</a><a class="btn o" id="work" href="#shorts">See our work</a></div>
-  <p class="mini">Packages from $1,000 a month. <a data-wa="Hi SIDQ Creative, I would like a quote." style="color:#b7e222">Get a quote on WhatsApp</a></p>
+  <p class="mini"><a data-wa="Hi SIDQ Creative, I would like a custom quote." style="color:#b7e222">Get a custom quote on WhatsApp</a></p>
 </section>
 
 <section><div class="stats" id="stats"></div><div class="chips"><small>We grow you on</small><span>YouTube Shorts</span><span>Instagram Reels</span><span>TikTok</span><span>Facebook</span></div></section>
@@ -169,10 +183,10 @@ th{color:var(--m);font-weight:600}td:first-child{color:var(--m)}th:nth-child(2),
 <section id="services">
   <h2>Our services</h2><p class="lead">Pick one service or combine them.</p>
   <div class="grid">
-    <article><h3>Private clipping</h3><p>A vetted private team works only on your content.</p></article>
-    <article><h3>Public clipping</h3><p>Our open network of clippers posts your clips on many pages.</p></article>
-    <article><h3>Short-form editing</h3><p>Pro editors turn your footage into fast, captioned shorts.</p></article>
-    <article><h3>Editing + content writing</h3><p>Edited shorts plus hooks, titles and captions written for you.</p></article>
+    <article><h3><a href="/services/private-clipping">Private clipping</a></h3><p>A vetted private team works only on your content.</p></article>
+    <article><h3><a href="/services/public-clipping">Public clipping</a></h3><p>Our open network of clippers posts your clips on many pages.</p></article>
+    <article><h3><a href="/services/short-form-editing">Short-form editing</a></h3><p>Pro editors turn your footage into fast, captioned shorts.</p></article>
+    <article><h3><a href="/services/editing-and-content-writing">Editing + content writing</a></h3><p>Edited shorts plus hooks, titles and captions written for you.</p></article>
   </div>
 </section>
 
@@ -225,16 +239,6 @@ th{color:var(--m);font-weight:600}td:first-child{color:var(--m)}th:nth-child(2),
   </div>
 </section>
 
-<section id="pricing">
-  <h2>Pricing</h2><p class="lead">Three ways to work with us. Your final price depends on your show and your goals.</p>
-  <div class="grid price">
-    <article><h3>Clip-Only Engine</h3><p>Best for emerging podcasters who post on their own channel and need production help.</p><b class="big" data-t="p1">$1,000 – $2,000 / month</b><ul><li>20 to 30 vertical shorts a month</li><li>Captions, color grading and visual hooks</li><li>Split-screen framing</li></ul><a class="btn go" data-wa="Hi SIDQ Creative, I am interested in the Clip-Only Engine.">Get this plan</a></article>
-    <article><h3>Managed Distribution Network</h3><p>Best for mid-tier podcasters who want big reach.</p><b class="big" data-t="p2">$0.50 – $2.50+ CPM</b><ul><li>Vetted clippers post across 15 to 30 fan channels</li><li>Send the episode link, we do the rest</li><li>You pay for verified delivered views, with a monthly cap you set</li></ul><a class="btn go" data-wa="Hi SIDQ Creative, I am interested in the Managed Distribution Network.">Get this plan</a></article>
-    <article><h3>B2B Podcast Pipeline</h3><p>Best for B2B and SaaS brands, investors and corporate hosts who use a podcast to win customers.</p><b class="big" data-t="p3">$4,000 – $8,000+ / month</b><ul><li>20 vertical clips and 4 written LinkedIn breakdowns</li><li>Full account publishing management</li><li>Monthly traffic attribution report</li></ul><a class="btn go" data-wa="Hi SIDQ Creative, I am interested in the B2B Podcast Pipeline.">Get this plan</a></article>
-  </div>
-  <p class="lead">Want us to run your channel? Private clipping is $1,000 per channel per month, with 2 clips a day on each platform. <a data-s="whop" target="_blank" rel="noopener" style="color:#b7e222">See our Whop page</a></p>
-</section>
-
 <section id="compare">
   <h2>Why SIDQ Creative</h2>
   <div class="tw"><table>
@@ -254,7 +258,7 @@ th{color:var(--m);font-weight:600}td:first-child{color:var(--m)}th:nth-child(2),
   <details><summary>What is the difference between private and public clipping?</summary><p>Private clipping uses a small dedicated team that works only on your content. Public clipping uses a large open network of clippers who post your clips on many pages.</p></details>
   <details><summary>What do I need to send?</summary><p>Just your raw long video. No prep is needed.</p></details>
   <details><summary>Do you write hooks, titles and captions?</summary><p>Yes. Our short-form editing plus content writing service includes them.</p></details>
-  <details><summary>How much does a clipping agency cost?</summary><p>Our packages start at $1,000 a month. The Managed Distribution Network is billed per 1,000 verified views, and the B2B Podcast Pipeline starts at $4,000 a month. See the pricing section above.</p></details>
+  <details><summary>How much does a clipping agency cost?</summary><p>The price depends on your content, how many channels you want and your goals. Message us on WhatsApp or fill in the form and we send you a custom quote.</p></details>
   <details><summary>What does CPM pricing mean?</summary><p>CPM means cost per 1,000 views. In the Managed Distribution Network you pay a set rate for every 1,000 verified views, up to a monthly limit you choose.</p></details>
   <details><summary>Do you work with businesses as well as podcasters?</summary><p>Yes. The B2B Podcast Pipeline is built for B2B and SaaS brands, investors and corporate hosts who use a podcast to win customers.</p></details>
   <details><summary>Which platforms do you post on?</summary><p>We make clips for the main short-form platforms, such as YouTube Shorts, Instagram Reels and TikTok.</p></details>
@@ -276,7 +280,13 @@ th{color:var(--m);font-weight:600}td:first-child{color:var(--m)}th:nth-child(2),
 </section>
 
 <a class="wa" data-wa="Hi SIDQ Creative, I would like to know more." target="_blank" rel="noopener">WhatsApp us</a>
-<footer><span>© <span id="y"></span> SIDQ Creative &nbsp; <a href="/blog">Blog</a></span><span class="soc"><a data-s="ig" target="_blank" rel="noopener">Instagram</a><a data-s="whop" target="_blank" rel="noopener">Whop</a><a data-s="discord" target="_blank" rel="noopener">Discord</a></span><a id="em" data-t="email"></a></footer>
+<footer class="ft">
+  <div><b>SIDQ Creative</b><p>Podcast and short-form clipping agency.</p><a id="em" data-t="email"></a></div>
+  <div><b>Services</b><a href="/services/private-clipping">Private clipping</a><a href="/services/public-clipping">Public clipping</a><a href="/services/short-form-editing">Short-form editing</a><a href="/services/editing-and-content-writing">Editing + writing</a></div>
+  <div><b>Company</b><a href="/blog">Blog</a><a href="/podcast-clipping-agency">For podcasters</a><a href="/streamer-clipping-agency">For streamers</a><a href="#apply">Contact</a></div>
+  <div><b>Follow</b><a data-s="ig" target="_blank" rel="noopener">Instagram</a><a data-s="whop" target="_blank" rel="noopener">Whop</a><a data-s="discord" target="_blank" rel="noopener">Discord</a></div>
+  <p class="copy">&copy; <span id="y"></span> SIDQ Creative. <a href="/privacy">Privacy</a> <a href="/terms">Terms</a></p>
+</footer>
 
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
@@ -352,7 +362,7 @@ mb.onclick=()=>mb.setAttribute('aria-expanded',nv.classList.toggle('open'));
 $('#menu').onclick=()=>nv.classList.remove('open');
 const nl=[...document.querySelectorAll('#menu a[href^="#"]')];
 const spy=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)nl.forEach(a=>a.classList.toggle('act',a.getAttribute('href')==='#'+e.target.id))}),{rootMargin:'-45% 0px -50% 0px'});
-['services','shorts','process','pricing','faq','apply'].forEach(id=>{const s=document.getElementById(id);if(s)spy.observe(s)});
+['services','shorts','process','faq','apply'].forEach(id=>{const s=document.getElementById(id);if(s)spy.observe(s)});
 // scroll-driven "How it works": steps fade and tilt in and out in 3D
 const trk=$('.track'),sts=[...document.querySelectorAll('.st')];
 function prog(){const b=trk.getBoundingClientRect(),p=Math.min(.999,Math.max(0,-b.top/(b.height-innerHeight))),k=Math.floor(p*sts.length);
@@ -366,6 +376,7 @@ document.head.appendChild(Object.assign(document.createElement('script'),{type:'
 $('#baplay').onclick=()=>{const v=[...document.querySelectorAll('.ba video')],go=v[0].paused;v[1].muted=false;v.forEach(x=>{x.currentTime=0;go?x.play():x.pause()});$('#baplay').textContent=go?'Pause both':'Play both'};
 // carousel filter by client
 $('#cf').onclick=e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#cf button').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('.car>div').forEach(v=>{v.hidden=b.textContent!=='All'&&v.dataset.c!==b.textContent})};
+addEventListener('scroll',()=>{$('.sp').style.width=(scrollY/(document.documentElement.scrollHeight-innerHeight)*100)+'%'},{passive:true});
 </script>
 </body>
 </html>
