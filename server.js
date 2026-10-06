@@ -7,6 +7,7 @@ if (process.env.SITE_URL) {  // send www to the main address
   app.use((q, r, n) => q.get('host') === 'www.' + main.host ? r.redirect(301, main.origin + q.originalUrl) : n());
 }
 app.use(compression());
+app.use((q, r, n) => { r.set({ 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'SAMEORIGIN', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'Permissions-Policy': 'camera=(), microphone=(), geolocation=()' }); n(); });
 
 if (!process.env.DATABASE_URL) {
   console.error('DATABASE_URL is missing. In Railway, add a PostgreSQL database and link DATABASE_URL to this service.');
@@ -23,7 +24,6 @@ const DEFAULT = {
     why: 'Attention is the new currency. Short videos win on every platform and grow your audience faster than any other format.',
     fName: 'Ahtisham', fRole: 'Founder', f1: '100K', f1l: 'Subscribers', f2: '30M+', f2l: 'Gaming views', fImg: '/founder-bw.jpg', fImg2: '/founder-color.jpg',
     email: 'hello@sidqcreative.com',
-    p1: '$1,000 – $2,000 / month', p2: '$0.50 – $2.50+ CPM', p3: '$4,000 – $8,000+ / month',
     wa: '447362449938', ig: 'sidqcreative', whop: 'https://whop.com/sidq-creative/', discord: ''
   },
   stats: [
@@ -86,14 +86,14 @@ const site = q => (process.env.SITE_URL || q.protocol + '://' + q.get('host')).r
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';');
 const md = t => String(t).split(/\n{2,}/).map(b => /^## /.test(b) ? `<h2>${esc(b.slice(3))}</h2>` : `<p>${esc(b).replace(/\n/g, '<br>')}</p>`).join('');
 const CSS = 'body{background:#000;color:#fff;font:18px/1.7 system-ui,sans-serif;max-width:720px;margin:auto;padding:32px 20px}a{color:#b7e222}h1{font-size:clamp(32px,6vw,52px);line-height:1.05;letter-spacing:-.03em}h2{margin-top:1.8em;line-height:1.2}small{color:#8f8f8f}article{border-top:1px solid #242424;padding:22px 0}';
-const page = (q, o) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(o.title)}</title><meta name="description" content="${esc(o.desc)}"><link rel="canonical" href="${site(q)}${o.path}"><meta property="og:title" content="${esc(o.title)}"><meta property="og:description" content="${esc(o.desc)}"><meta property="og:url" content="${site(q)}${o.path}"><meta property="og:type" content="${o.ld ? 'article' : 'website'}">${o.ld ? `<script type="application/ld+json">${JSON.stringify(o.ld).replace(/</g, '\\u003c')}</script>` : ''}<link rel="icon" href="/favicon.png"><style>${CSS}</style></head><body><p><a href="/">SIDQ Creative</a> | <a href="/blog">Blog</a></p>${o.body}<p style="margin-top:3em"><a href="/#apply"><b>Work with SIDQ Creative</b></a> | <a href="/blog">More articles</a></p></body></html>`;
+const page = (q, o) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(o.title)}</title><meta name="description" content="${esc(o.desc)}"><link rel="canonical" href="${site(q)}${o.path}"><meta property="og:title" content="${esc(o.title)}"><meta property="og:description" content="${esc(o.desc)}"><meta property="og:url" content="${site(q)}${o.path}"><meta property="og:type" content="${o.type || (o.ld ? 'article' : 'website')}">${o.ld ? `<script type="application/ld+json">${JSON.stringify(o.ld).replace(/</g, '\\u003c')}</script>` : ''}<link rel="icon" href="/favicon.png"><link rel="alternate" type="application/rss+xml" href="/rss.xml">${o.crumbs ? '<script type="application/ld+json">' + JSON.stringify({ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: o.crumbs.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c[0], item: site(q) + c[1] })) }).replace(/</g, '\\u003c') + '</script>' : ''}<style>${CSS}</style></head><body><p><a href="/">SIDQ Creative</a> | <a href="/blog">Blog</a></p>${o.body}<p style="margin-top:3em"><a href="/#apply"><b>Work with SIDQ Creative</b></a> | <a href="/blog">More articles</a> | <a href="/privacy">Privacy</a> | <a href="/terms">Terms</a></p></body></html>`;
 
 app.get('/', (q, r) => r.type('html').send(home.split('%SITE%').join(site(q))));
 app.get('/robots.txt', (q, r) => r.type('text').send(`User-agent: *\nAllow: /\nDisallow: /admin\nSitemap: ${site(q)}/sitemap.xml\n`));
 app.get('/sitemap.xml', wrap(async (q, r) => {
   const { rows } = await db.query('SELECT slug, at FROM posts ORDER BY at DESC');
   const u = (p, d) => `<url><loc>${site(q)}${p}</loc>${d ? `<lastmod>${new Date(d).toISOString().slice(0, 10)}</lastmod>` : ''}</url>`;
-  r.type('xml').send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${u('/')}${u('/blog')}${rows.map(p => u('/blog/' + p.slug, p.at)).join('')}</urlset>`);
+  r.type('xml').send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${u('/')}${u('/blog')}${LAND.map(x => u(x[0])).join('')}${u('/privacy')}${u('/terms')}${rows.map(p => u('/blog/' + p.slug, p.at)).join('')}</urlset>`);
 }));
 
 app.get('/blog', wrap(async (q, r) => {
@@ -105,8 +105,9 @@ app.get('/blog', wrap(async (q, r) => {
 app.get('/blog/:slug', wrap(async (q, r) => {
   const p = (await db.query('SELECT * FROM posts WHERE slug = $1', [q.params.slug])).rows[0];
   if (!p) return r.status(404).send(page(q, { title: 'Not found | SIDQ Creative', desc: 'Post not found', path: '/blog', body: '<h1>Post not found</h1>' }));
-  r.type('html').send(page(q, { title: p.title + ' | SIDQ Creative', desc: p.descr, path: '/blog/' + p.slug,
-    body: `<h1>${esc(p.title)}</h1><small>${new Date(p.at).toDateString()}</small>${md(p.body)}`,
+  const rel = (await db.query('SELECT slug, title FROM posts WHERE slug <> $1 ORDER BY at DESC LIMIT 3', [p.slug])).rows;
+  r.type('html').send(page(q, { title: p.title + ' | SIDQ Creative', desc: p.descr, path: '/blog/' + p.slug, crumbs: [['Home', '/'], ['Blog', '/blog'], [p.title, '/blog/' + p.slug]],
+    body: `<h1>${esc(p.title)}</h1><small>${new Date(p.at).toDateString()} | ${Math.max(1, Math.round(p.body.split(/\s+/).length / 200))} min read</small>${md(p.body)}<hr><p><b>Written by Ahtisham</b>, founder of SIDQ Creative and a gaming creator with 100K subscribers and 30M+ views.</p><h2>More to read</h2>${rel.map(x => `<p><a href="/blog/${x.slug}">${esc(x.title)}</a></p>`).join('')}`,
     ld: { '@context': 'https://schema.org', '@type': 'BlogPosting', headline: p.title, description: p.descr, datePublished: p.at,
       author: { '@type': 'Person', name: 'Ahtisham' }, publisher: { '@type': 'Organization', name: 'SIDQ Creative' } } }));
 }));
@@ -123,8 +124,162 @@ app.post('/api/posts', auth, wrap(async (q, r) => {
 }));
 app.delete('/api/posts/:id', auth, wrap(async (q, r) => { await db.query('DELETE FROM posts WHERE id = $1', [+q.params.id || 0]); r.json({ ok: true }); }));
 
+// ---------- landing pages, legal pages, RSS, 404 ----------
+const LAND = [
+['/services/private-clipping', 'Private Clipping Service', 'A dedicated team of vetted clippers works only on your content, with consistent quality and full control.', `Private clipping gives you a small, trusted team that works only on your content.
+
+## What you get
+
+Clippers who learn your style, follow your rules and deliver clips with consistent quality. Your raw footage stays inside the team.
+
+## Best for
+
+Podcasters, streamers and brands that care about quality, privacy and control over how their content looks.
+
+## How it works
+
+You send the long video. Our team finds the best moments, edits them and delivers clips that are ready to post, or posts them for you.`],
+['/services/public-clipping', 'Public Clipping Network', 'Our open network of clippers cuts and posts your content across many pages to give you wide reach.', `Public clipping uses a large open network of clippers who make and post clips of your content on their own pages.
+
+## What you get
+
+Wide reach across many audiences at once, because many clippers post in parallel on different pages.
+
+## Best for
+
+Creators and podcasts that want more reach and views and are happy to share their content with a network.
+
+## How it works
+
+You share your long video and the rules. Clippers cut and post clips, and views are counted so you can see what the network delivered.`],
+['/services/short-form-editing', 'Short-Form Video Editing', 'Pro editors turn your footage into fast, captioned shorts with strong hooks, pacing and graphics.', `Our editors turn long footage into short videos built to hold attention.
+
+## What is included
+
+A strong hook in the first seconds, tight pacing, clear captions, sound design and clean vertical framing.
+
+## Best for
+
+Creators who post on their own channel and need polished videos without hiring an in-house editor.
+
+## How it works
+
+Send the raw video. We select the moments, edit them and send back finished clips, ready to upload to YouTube Shorts, Instagram Reels and TikTok.`],
+['/services/editing-and-content-writing', 'Short-Form Editing and Content Writing', 'Edited shorts plus hooks, titles and captions written for you, so every clip is ready to post.', `This service adds writing to our editing. Every clip comes with the words that help it perform.
+
+## What is included
+
+Edited shorts, plus hooks, titles, captions and descriptions written for each platform.
+
+## Best for
+
+Busy creators and brands who want to post consistently without writing copy for every clip.
+
+## How it works
+
+You send the long video and a few notes about your audience. We deliver the clips and the text, ready to post.`],
+['/podcast-clipping-agency', 'Podcast Clipping Agency', 'SIDQ Creative turns podcast episodes into short clips that bring new listeners and viewers.', `A podcast episode is full of moments that can reach new people. Our podcast clipping agency finds them and turns them into shorts.
+
+## Why clip your podcast
+
+Short clips are the easiest way for new listeners to find your show on YouTube Shorts, Instagram Reels and TikTok.
+
+## What we do
+
+We find the strongest moments, edit them with captions and hooks, and deliver clips or post them for you. We also offer a B2B pipeline for brands that use a podcast to win customers.
+
+## Get started
+
+Send us an episode and tell us your goal.`],
+['/streamer-clipping-agency', 'Streamer Clipping Agency', 'We turn streams and gaming content into short clips that grow your audience.', `Streams are long, but the best moments are short. Our streamer clipping agency finds funny, exciting and viral moments and turns them into shorts.
+
+## Why it works
+
+Short clips bring new viewers to your channel while you are offline.
+
+## What we do
+
+We watch your streams or VODs, pick the best moments and edit them for YouTube Shorts, Instagram Reels and TikTok. Our founder is a gaming creator with 100K subscribers and 30M+ views, so we know what gamers like to watch.
+
+## Get started
+
+Send us a stream link and tell us your goal.`]
+];
+LAND.forEach(([p, t, d, b]) => app.get(p, (q, r) => r.type('html').send(page(q, { title: t + ' | SIDQ Creative', desc: d, path: p, type: 'website',
+  body: `<h1>${esc(t)}</h1>${md(b)}<p><a href="https://wa.me/447362449938?text=${encodeURIComponent('Hi SIDQ Creative, I am interested in: ' + t)}"><b>Get a custom quote on WhatsApp</b></a></p>`,
+  crumbs: [['Home', '/'], [t, p]],
+  ld: { '@context': 'https://schema.org', '@type': 'Service', name: t, description: d, provider: { '@type': 'Organization', name: 'SIDQ Creative', url: site(q) }, areaServed: 'Worldwide' } }))));
+
+const LEGAL = {
+'/privacy': ['Privacy Policy', `Last updated: October 2026.
+
+SIDQ Creative runs this website. This policy explains what information we collect and how we use it.
+
+## What we collect
+
+When you fill in our form we collect your name, email, phone number, your budget or links and your message. We also record the website or link you came from. If you contact us on WhatsApp or Instagram, those services handle your messages under their own policies.
+
+## How we use it
+
+We use your information to reply to you, prepare quotes and run our service. We do not sell your information.
+
+## Who sees it
+
+Only our team. We use hosting and database providers to run the site, and they process data on our behalf.
+
+## How long we keep it
+
+We keep applications only as long as we need them to talk with you. You can ask us to delete your data at any time.
+
+## Your rights
+
+You can ask to see, correct or delete your information. Message us on WhatsApp at +44 7362 449938.
+
+## Cookies
+
+We do not use advertising cookies. If we add analytics later, we will update this page.`],
+'/terms': ['Terms of Service', `Last updated: October 2026.
+
+By using this website or working with SIDQ Creative you agree to these terms.
+
+## Our services
+
+We provide clipping, editing and distribution services for long-form video. The scope, price and timing of each project are agreed with you in writing before work starts.
+
+## Your content
+
+You keep ownership of your content. You confirm that you have the right to give us the videos you send, and you allow us to edit, post and distribute clips of them for you.
+
+## Results
+
+We work hard to grow your reach, but we cannot promise a specific number of views, followers or sales. Platform rules and algorithms change.
+
+## Payments
+
+Fees are agreed in advance. Unless we agree otherwise, work starts after payment is confirmed.
+
+## Confidentiality
+
+We keep your unreleased content private and share it only with the editors working on your project.
+
+## Changes
+
+We may update these terms. The latest version is always on this page.
+
+## Contact
+
+Message us on WhatsApp at +44 7362 449938.`]
+};
+Object.entries(LEGAL).forEach(([p, [t, b]]) => app.get(p, (q, r) => r.type('html').send(page(q, { title: t + ' | SIDQ Creative', desc: t + ' for SIDQ Creative.', path: p, type: 'website', body: `<h1>${esc(t)}</h1>${md(b)}` }))));
+
+app.get('/rss.xml', wrap(async (q, r) => {
+  const { rows } = await db.query('SELECT slug, title, descr, at FROM posts ORDER BY at DESC LIMIT 50');
+  r.type('xml').send(`<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>SIDQ Creative Blog</title><link>${site(q)}/blog</link><description>Tips on clipping and short-form video</description>${rows.map(p => `<item><title>${esc(p.title)}</title><link>${site(q)}/blog/${p.slug}</link><description>${esc(p.descr)}</description><pubDate>${new Date(p.at).toUTCString()}</pubDate></item>`).join('')}</channel></rss>`);
+}));
+
 app.get('/admin', (q, r) => r.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '7d', index: false }));
+app.use((q, r) => r.status(404).type('html').send(page(q, { title: 'Page not found | SIDQ Creative', desc: 'Page not found', path: '/', type: 'website', body: '<h1>Page not found</h1><p><a href="/">Back to the home page</a></p>' })));
 
 const SEED = [
 ['OpusClip vs a Clipping Agency: Which One Fits Your Channel?', 'OpusClip is an AI clipping tool. A clipping agency uses people. Learn when each one is the better choice.', `OpusClip is an AI tool that cuts a long video into short clips automatically. A clipping agency does the same job with a team of people. Both can work, but they suit different creators.
@@ -220,23 +375,31 @@ async function seed() {
 }
 
 const SEED2 = [
-['How Much Does a Clipping Agency Cost?', 'See what you get with a $1,000 clip retainer, per-view CPM pricing and a $4,000+ B2B pipeline.', `The cost of a clipping agency depends on what you need. Here is how pricing works at SIDQ Creative.
+['How Much Does a Clipping Agency Cost? What Affects the Price', 'The price of a clipping agency depends on volume, channels and distribution. See what changes the cost.', `There is no single price for a clipping agency. The cost depends on what you need. These are the main things that change it.
 
-## Clip-only retainer: $1,000 to $2,000 a month
+## How many clips you need
 
-You send long videos and we deliver 20 to 30 vertical shorts a month, with captions, color grading, visual hooks and split-screen framing. You post them on your own channel.
+Ten clips a month and fifty clips a month are very different jobs. More clips mean more editing time.
 
-## Per-view pricing (CPM)
+## How many channels we run
 
-With the Managed Distribution Network you do not pay for files. You pay a rate per 1,000 verified views, usually $0.50 to $2.50 or more, up to a monthly limit you set. Our clippers post across 15 to 30 fan channels.
+Running one channel is simpler than running several. Each extra channel needs its own posting plan and tracking.
 
-## Full B2B pipeline: $4,000 to $8,000+ a month
+## The level of editing
 
-For brands that use a podcast to win customers. It includes 20 clips, 4 written LinkedIn breakdowns, account publishing management and a monthly traffic report.
+Simple cuts with captions cost less than full edits with color grading, graphics and split-screen framing.
 
-## How to choose
+## Distribution
 
-Pick the retainer if you want polished clips for your own channel. Pick CPM if you want reach and prefer to pay for results. Pick the pipeline if your podcast supports sales. Message us on WhatsApp for a quote.`],
+Some clients only want the files. Others also want a clipper network that posts across many pages, and pay by views.
+
+## Extras
+
+Written content such as hooks, titles and LinkedIn posts adds to the work, and so do reports.
+
+## How to get a price
+
+Tell us about your show, your goal and how many channels you want. We send a custom quote. Message us on WhatsApp or fill in the form.`],
 ['OpusClip and Submagic Alternatives: When to Hire People Instead', 'Looking for an OpusClip or Submagic alternative? Learn when a human clipping team is the better choice.', `AI tools like OpusClip and Submagic save time. But many creators look for alternatives when the results feel generic.
 
 ## Signs a tool is not enough
@@ -249,7 +412,7 @@ Editors choose moments that fit your audience, add pacing and graphics that matc
 
 ## A simple way to decide
 
-Try a tool first if your budget is small. Hire a team when your time is worth more than the tool saves, or when you want a steady stream of clips without managing it. SIDQ Creative packages start at $1,000 a month.`],
+Try a tool first if your budget is small. Hire a team when your time is worth more than the tool saves, or when you want a steady stream of clips without managing it. Message us on WhatsApp for a custom quote.`],
 ['How to Turn a Podcast Into 30 Shorts', 'A simple 5-step process to cut one long podcast episode into dozens of short clips.', `One podcast episode has enough material for dozens of shorts. Follow this process.
 
 ## Step 1: Watch for strong moments
@@ -285,7 +448,7 @@ You pay for delivered views, so the cost follows the results. It also puts your 
 
 ## When it makes sense
 
-It works best for podcasts and creators that already have long videos and want more reach. SIDQ Creative runs this as the Managed Distribution Network, with rates from $0.50 to $2.50 or more per 1,000 views.`]
+It works best for podcasts and creators that already have long videos and want more reach. SIDQ Creative runs this as the Managed Distribution Network, with a rate agreed in advance.`]
 ];
 async function seed2() {
   if ((await db.query('SELECT 1 FROM content WHERE id = 3')).rowCount) return;
