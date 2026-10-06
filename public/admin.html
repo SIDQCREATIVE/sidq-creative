@@ -85,7 +85,7 @@ function badge(){const n=t=>LS.filter(l=>l.type===t&&!l.seen).length,c=n('custom
 function showLeads(){
   badge();document.querySelectorAll('.tabs2 button').forEach(b=>b.classList.toggle('on',b.dataset.k===tab));
   const rows=LS.filter(l=>l.type===tab);
-  $('#ls').innerHTML=rows.length?`<table>${rows.map(l=>`<tr><td>${l.seen?'':'<b style="color:#b7e222">NEW</b><br>'}${esc(new Date(l.at).toLocaleString())}</td><td>${esc(l.name)}<br>${esc(l.email)}<br>${esc(l.phone)}</td><td>${tab==='clipper'?'Edits: ':'Budget: '}${esc(l.budget)}<br>${esc(l.msg)}</td><td><button data-dl="${l.id}" style="padding:4px 12px;background:#7f1d1d;color:#fff">Delete</button></td></tr>`).join('')}</table>`:'<p>No applications yet.</p>';
+  $('#ls').innerHTML=rows.length?`<table>${rows.map(l=>`<tr><td>${l.seen?'':'<b style="color:#b7e222">NEW</b><br>'}${esc(new Date(l.at).toLocaleString())}</td><td>${esc(l.name)}<br>${esc(l.email)}<br>${esc(l.phone)}</td><td>${tab==='clipper'?'Edits: ':'Budget: '}${esc(l.budget)}<br>${esc(l.msg)}${l.src?'<br><small>Source: '+esc(l.src)+'</small>':''}</td><td><button data-dl="${l.id}" style="padding:4px 12px;background:#7f1d1d;color:#fff">Delete</button></td></tr>`).join('')}</table>`:'<p>No applications yet.</p>';
   clearTimeout(T);T=setTimeout(async()=>{if(LS.some(l=>l.type===tab&&!l.seen)){const t=tab;try{await api('/api/leads/seen','POST',{type:t});LS.forEach(l=>{if(l.type===t)l.seen=true});badge()}catch{}}},4000)}
 document.querySelectorAll('.tabs2 button').forEach(b=>b.onclick=()=>go(b.dataset.k));
 function go(k){tab=k;location.hash=k;
