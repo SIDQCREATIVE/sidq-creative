@@ -29,10 +29,11 @@ td{border-top:1px solid #222;padding:8px 6px;vertical-align:top;word-break:break
 </form>
 
 <div id="ed" hidden>
-  <div class="tabs2"><button data-k="home">Overview</button><button data-k="customer">Customers <b id="nc"></b></button><button data-k="clipper">Clippers <b id="nk"></b></button><button data-k="content">Content</button><button data-k="blog">Blog</button></div>
+  <div class="tabs2"><button data-k="home">Overview</button><button data-k="customer">Customers <b id="nc"></b></button><button data-k="clipper">Clippers <b id="nk"></b></button><button data-k="content">Content</button><button data-k="blog">Blog</button><button data-k="seo">SEO</button></div>
   <div data-pg="home"><h2>Overview</h2><div id="ov"></div></div>
   <div data-pg="content"><div id="f"></div>
   <div class="bar"><button id="sv">Save changes</button><span id="msg" role="status"></span></div></div>
+  <div data-pg="seo"><h2>Page titles, descriptions and headings</h2><p>Leave a box empty to use the default (shown in grey). Home page headings: change Hero line 1 and 2 under Content.</p><div id="sp"></div><div class="bar"><button id="ssv">Save SEO</button><span id="smsg" role="status"></span></div></div>
   <div data-pg="blog"><h2>Blog (SEO)</h2>
   <label>Title<input id="bt"></label>
   <label>Short description for Google (about 150 characters)<input id="bd" maxlength="300"></label>
@@ -44,8 +45,9 @@ td{border-top:1px solid #222;padding:8px 6px;vertical-align:top;word-break:break
 
 <script>
 const $=s=>document.querySelector(s);
-const L={heroA:'Hero line 1 (white)',heroB:'Hero line 2 (grey)',sub:'Hero paragraph',whyH:'Why section title',why:'Why section text',fName:'Founder name',fRole:'Founder title',f1:'Founder number 1',f1l:'Number 1 label',f2:'Founder number 2',f2l:'Number 2 label',fImg:'Founder photo, black and white',fImg2:'Founder photo, color (shows on hover)',p1:'Price, Clip-Only Engine',p2:'Price, Distribution Network',p3:'Price, B2B Pipeline',wa:'WhatsApp number (digits only, with country code)',ig:'Instagram username',whop:'Whop link',discord:'Discord invite link (full link)',email:'Contact email'};
-let tok=sessionStorage.k,D;
+const L={heroA:'Hero line 1 (white)',heroB:'Hero line 2 (grey)',sub:'Hero paragraph',whyH:'Why section title',why:'Why section text',fName:'Founder name',fRole:'Founder title',f1:'Founder number 1',f1l:'Number 1 label',f2:'Founder number 2',f2l:'Number 2 label',fImg:'Founder photo, black and white',fImg2:'Founder photo, color (shows on hover)',p1:'Price, Clip-Only Engine',p2:'Price, Distribution Network',p3:'Price, B2B Pipeline',wa:'WhatsApp number (digits only, with country code)',ig:'Instagram username',whop:'Whop link',discord:'Discord invite link (full link)',hServices:'Heading: services',hShorts:'Heading: popular shorts',hProcess:'Heading: how it works',hFounder:'Heading: founder',hFaq:'Heading: FAQ',hApply:'Heading: apply form',hCompare:'Heading: comparison table',hStd:'Heading: what we clip and skip',email:'Contact email'};
+const DH={hServices:'Our services',hShorts:'Popular shorts',hProcess:'How it works',hFounder:'Meet the founder',hFaq:'Frequently asked questions',hApply:'Work with us',hCompare:'Why SIDQ Creative',hStd:'What we clip. What we skip.'};
+let tok=sessionStorage.k,D,SEO={};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const api=(u,m='GET',b)=>fetch(u,{method:m,headers:{'Content-Type':'application/json','x-token':tok||''},body:b&&JSON.stringify(b)})
   .then(async r=>{const j=await r.json().catch(()=>({}));if(!r.ok)throw j.error||'Something went wrong';return j});
@@ -55,7 +57,7 @@ async function load(){
     const ls=await api('/api/leads');D=await api('/api/content');
     $('#lg').hidden=true;$('#ed').hidden=false;
     $('#f').innerHTML='<h2>Texts</h2>'
-      +[...new Set([...Object.keys(D.t),'fImg','fImg2','wa','ig','whop','discord'])].map(k=>`<label>${L[k]||k}<input data-k="${k}" value="${esc(D.t[k]||'')}"></label>`).join('')
+      +[...new Set([...Object.keys(D.t),'fImg','fImg2','wa','ig','whop','discord','hServices','hShorts','hProcess','hFounder','hFaq','hApply','hCompare','hStd'])].map(k=>`<label>${L[k]||k}<input data-k="${k}" value="${esc(D.t[k]||DH[k]||'')}"></label>`).join('')
       +'<h2>Numbers</h2>'
       +D.stats.map((s,i)=>`<div class="r"><label>Number<input data-v="${i}" value="${esc(s.v)}"></label><label>Label<input data-l="${i}" value="${esc(s.l)}"></label></div>`).join('')
       +`<h2>Popular shorts carousel</h2><label>One per line: a YouTube Shorts link, or /videos/file.mp4 | Client name (5 to 100)<textarea id="sh" rows="10">${esc(D.shorts.join('\n'))}</textarea></label>`;
@@ -93,9 +95,13 @@ function go(k){tab=k;location.hash=k;
   document.querySelectorAll('.tabs2 button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
   $('#ph').textContent=k==='clipper'?'Clipper applications':'Customer applications';
   $('#ov').innerHTML=['customer','clipper'].map(t=>`<p><b>${LS.filter(l=>l.type===t).length}</b> ${t} applications, <b>${LS.filter(l=>l.type===t&&!l.seen).length}</b> new</p>`).join('');
-  if(k==='customer'||k==='clipper')showLeads();else badge()}
+  if(k==='customer'||k==='clipper')showLeads();else badge();if(k==='seo')seoLoad()}
 $('#ls').onclick=async e=>{const id=e.target.dataset.dl;if(id&&confirm('Delete this application?')){await api('/api/leads/'+id,'DELETE');LS=LS.filter(l=>l.id!=id);showLeads()}};
 setInterval(async()=>{if(!tok||$('#ed').hidden)return;try{LS=await api('/api/leads');go(tab)}catch{}},30000);
+async function seoLoad(){const j=await api('/api/seo');SEO=j.SEO;window.SP=j.pages;
+  $('#sp').innerHTML=j.pages.map(([p,n,t,d],i)=>{const o=SEO[p]||{};return `<h3>${esc(n)} <small>${esc(p)}</small></h3><label>Meta title<input data-sp="${i}" data-f="title" placeholder="${esc(t)}" value="${esc(o.title||'')}"></label><label>Meta description<textarea rows="2" data-sp="${i}" data-f="desc" placeholder="${esc(d)}">${esc(o.desc||'')}</textarea></label>${p==='/'?'':`<label>Main heading (H1)<input data-sp="${i}" data-f="h1" placeholder="${esc(n)}" value="${esc(o.h1||'')}"></label>`}`}).join('')}
+$('#ssv').onclick=async()=>{const o={};document.querySelectorAll('[data-sp]').forEach(i=>{const p=window.SP[i.dataset.sp][0];(o[p]=o[p]||{})[i.dataset.f]=i.value});
+  try{await api('/api/seo','PUT',o);$('#smsg').textContent='Saved.'}catch(e){$('#smsg').textContent=e}};
 async function posts(){const p=await api('/api/posts');$('#bl').innerHTML=p.map(x=>`<p><a style="color:#b7e222" href="/blog/${esc(x.slug)}" target="_blank">${esc(x.title)}</a> <button data-del="${x.id}" style="padding:4px 12px;background:#7f1d1d;color:#fff">Delete</button></p>`).join('')}
 $('#bp').onclick=async()=>{try{const r=await api('/api/posts','POST',{title:$('#bt').value,descr:$('#bd').value,body:$('#bb').value});$('#bm').textContent='Published: /blog/'+r.slug;['bt','bd','bb'].forEach(i=>$('#'+i).value='');posts()}catch(e){$('#bm').textContent=e}};
 $('#bl').onclick=async e=>{const id=e.target.dataset.del;if(id&&confirm('Delete this post?')){await api('/api/posts/'+id,'DELETE');posts()}};
