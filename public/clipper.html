@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Clipper Portal | SIDQ Creative</title>
+<link rel="icon" href="/favicon.png">
+<style>
+:root{--g:#b7e222;--m:#8f8f8f;--l:#242424}
+*{box-sizing:border-box;margin:0}
+body{background:#0a0a0a;color:#fff;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:inherit}button{font:inherit;cursor:pointer}
+.login{min-height:100vh;display:grid;place-content:center;justify-items:center;gap:18px;text-align:center;padding:24px}
+.login img{width:140px;height:auto}.login h1{font-size:34px}.login p{color:var(--m);max-width:430px}
+.btn{background:var(--g);color:#000;border:0;border-radius:99px;padding:13px 26px;font-weight:700;text-decoration:none;display:inline-block}
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+aside{background:#111;border-right:1px solid var(--l);padding:18px 12px;position:sticky;top:0;height:100vh}
+.brand{display:flex;gap:10px;align-items:center;font-weight:800;padding:6px 10px 18px}.brand img{width:28px;height:28px}
+aside small{display:block;color:var(--m);font-size:11px;letter-spacing:.1em;margin:18px 10px 6px}
+aside a{display:block;padding:10px 12px;border-radius:10px;color:#cfcfcf;text-decoration:none}
+aside a:hover{background:#1a1a1a}aside a.on{background:#1b1f10;color:var(--g)}
+header{display:flex;justify-content:flex-end;align-items:center;gap:14px;padding:12px 24px;border-bottom:1px solid var(--l);position:relative}
+.wal{border:1px solid var(--l);border-radius:99px;padding:6px 14px;color:var(--g);font-weight:700}
+.av{width:38px;height:38px;border-radius:50%;object-fit:cover;cursor:pointer;background:#222}
+.menu{position:absolute;right:24px;top:58px;background:#151515;border:1px solid var(--l);border-radius:14px;padding:8px;min-width:210px;z-index:5}
+.menu a{display:block;padding:10px;border-radius:8px;text-decoration:none}.menu a:hover{background:#1f1f1f}
+main{padding:28px;max-width:1100px}h2{font-size:26px;margin-bottom:16px}
+.card{background:#111;border:1px solid var(--l);border-radius:18px;padding:20px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:14px}.grid .card{margin:0}
+.big{font-size:32px;font-weight:800;color:var(--g);line-height:1.2}.mut{color:var(--m)}
+.bar{height:8px;background:#222;border-radius:9px;overflow:hidden;margin-top:10px}.bar i{display:block;height:100%;background:var(--g)}
+input,textarea,select{width:100%;background:#0c0c0c;border:1px solid #2a2a2a;border-radius:10px;color:#fff;padding:12px;font:inherit;margin:6px 0 12px}
+.tag{font-size:12px;border:1px solid #6b4a00;border-radius:99px;padding:2px 10px;color:#f5c542}
+.row{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--l)}
+.note{background:#1b1f10;border:1px solid #3a4a12;border-radius:12px;padding:12px 16px;margin-bottom:14px}
+.modal{position:fixed;inset:0;background:#000b;display:grid;place-items:center;z-index:20;padding:20px}.modal .card{max-width:480px}
+.chk{display:flex;gap:10px;align-items:flex-start;margin:10px 0}.chk input{width:auto;margin:4px 0 0}
+@media(max-width:800px){.app{grid-template-columns:1fr}aside{position:static;height:auto;display:flex;flex-wrap:wrap;gap:4px}aside small{display:none}main{padding:16px}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const api=(u,m='GET',b)=>fetch(u,{method:m,headers:{'Content-Type':'application/json'},body:b&&JSON.stringify(b)}).then(async r=>{const j=await r.json().catch(()=>({}));if(!r.ok)throw j.error||'Something went wrong';return j});
+const NAV=[['home','Home'],['users','Users'],['leaderboard','Leaderboard'],['campaigns','Campaigns'],['mine','My Campaigns']];
+const link=([k,t],h)=>`<a href="#${k}" class="${h===k?'on':''}">${t}</a>`;
+let S;
+
+function login(){$('#root').innerHTML=`<div class="login"><img src="/logo.webp" alt="SIDQ Creative"><h1>Clipper Portal</h1><p>Clip videos, join campaigns and get paid per 1,000 views. Log in with Discord to start.</p><a class="btn" href="/auth/discord">Log in with Discord</a><p style="font-size:13px">We only accept clean content: no music promotion, gambling, alcohol, illegal or haram content. <a href="/content-standards" style="color:var(--g)">Read the standards</a></p></div>`}
+
+async function boot(){S=await api('/api/me');S.user?draw():login()}
+
+function draw(){
+  const u=S.user,h=(location.hash||'#home').slice(1);
+  $('#root').innerHTML=`<div class="app"><aside><div class="brand"><img src="/logo-mark.png" alt="">SIDQ Creative</div><small>GENERAL</small>${NAV.slice(0,3).map(n=>link(n,h)).join('')}<small>ACTIVITY</small>${NAV.slice(3).map(n=>link(n,h)).join('')}<small>SUPPORT</small><a href="https://wa.me/447362449938" target="_blank" rel="noopener">Live Support</a></aside>
+  <div><header><span class="wal">$0.00</span><img class="av" id="av" src="${esc(u.avatar)}" alt="Your profile"><div class="menu" id="mn" hidden><a href="#profile">My Profile</a><a href="#settings">Account Settings</a><a href="#accounts">Connected Accounts</a><a href="#mine">My Campaigns</a><a href="/auth/logout" style="color:#ff6b6b">Sign out</a></div></header><main id="main"></main></div></div>`;
+  $('#av').onclick=()=>$('#mn').hidden=!$('#mn').hidden;
+  (V[h]||V.home)();
+  if(!u.onboarded)onboard();
+}
+
+const rankCard=()=>{const u=S.user,p=u.next?Math.min(100,u.xp/u.next*100):100;return `<div class="card"><div class="mut">Rank</div><div class="big">${esc(u.rank)}</div><div class="bar"><i style="width:${p}%"></i></div><div class="mut" style="margin-top:6px">${u.xp} / ${u.next||'max'} XP</div></div>`};
+const soon=(t,d)=>()=>{$('#main').innerHTML=`<h2>${t}</h2><div class="card"><p>${d}</p><p class="mut" style="margin-top:8px">This page is coming in the next update.</p></div>`};
+
+const V={
+  home(){const u=S.user;$('#main').innerHTML=`<h2>Welcome back, ${esc(u.username)}</h2>
+   <div class="grid"><div class="card"><div class="mut">Total earnings</div><div class="big">$0.00</div></div><div class="card"><div class="mut">Total views</div><div class="big">0</div></div><div class="card"><div class="mut">Submissions</div><div class="big">0</div></div>${rankCard()}</div>
+   <div class="card"><h3>Get started</h3><p class="mut" style="margin:6px 0 10px">1. Connect your YouTube, TikTok or Instagram account. 2. Wait for approval. 3. Join a campaign and submit your clips.</p><a class="btn" href="#accounts">Connect an account</a></div>
+   <div class="note">Campaigns are coming soon. Only clean content is accepted: no music promotion, gambling, alcohol, illegal or haram content. <a href="/content-standards" style="color:var(--g)">Read the standards</a></div>`},
+  profile(){const u=S.user;$('#main').innerHTML=`<h2>My Profile</h2><div class="card" style="display:flex;gap:16px;align-items:center"><img class="av" style="width:72px;height:72px" src="${esc(u.avatar)}" alt=""><div><div class="big" style="font-size:24px;color:#fff">${esc(u.username)}</div><div class="mut">${S.accounts.length} connected account(s)</div></div></div>${rankCard()}<div class="card"><div class="mut">Bio</div><p>${esc(u.bio)||'No bio yet.'}</p></div>`},
+  settings(){const u=S.user;$('#main').innerHTML=`<h2>Account Settings</h2><div class="card"><label>Username<input value="${esc(u.username)}" disabled></label><p class="mut" style="margin-bottom:12px">Your username and photo come from Discord.</p><label>Bio<textarea id="bio" rows="3" maxlength="200">${esc(u.bio)}</textarea></label><button class="btn" id="sv">Save</button> <span id="ms" class="mut"></span></div>`;
+   $('#sv').onclick=async()=>{try{await api('/api/profile','PUT',{bio:$('#bio').value});S.user.bio=$('#bio').value;$('#ms').textContent='Saved.'}catch(e){$('#ms').textContent=e}}},
+  accounts(){$('#main').innerHTML=`<h2>Connected Accounts</h2><div class="card">${S.accounts.length?S.accounts.map(a=>`<div class="row"><div><b>${esc(a.platform)}</b> @${esc(a.handle)} <span class="tag">${esc(a.status)}</span></div><button class="btn" style="background:#2a1212;color:#ff8a8a" data-del="${a.id}">Remove</button></div>`).join(''):'<p class="mut">No accounts yet.</p>'}</div>
+   <div class="card"><h3>Add an account</h3><p class="mut" style="margin:4px 0 10px">YouTube, TikTok and Instagram for now. A team member approves each account.</p><select id="pl"><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="instagram">Instagram</option></select><input id="hd" placeholder="Your username, without @" maxlength="40"><button class="btn" id="ad">Add account</button> <span id="ms" class="mut"></span></div>`;
+   $('#ad').onclick=async()=>{try{await api('/api/accounts','POST',{platform:$('#pl').value,handle:$('#hd').value});await boot()}catch(e){$('#ms').textContent=e}};
+   document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{if(confirm('Remove this account?')){await api('/api/accounts/'+b.dataset.del,'DELETE');await boot()}})},
+  users:soon('Users','Browse the clipper community and see top profiles.'),
+  leaderboard:soon('Leaderboard','See the top clippers by views, followers and money earned.'),
+  campaigns:soon('Campaigns','Browse campaigns, read the rules and join with your accounts.'),
+  mine:soon('My Campaigns','Your joined campaigns, submissions and earnings will show here.')
+};
+
+function onboard(){
+  const m=document.createElement('div');m.className='modal';
+  m.innerHTML=`<div class="card"><h3>Before you start</h3><label class="chk"><input type="checkbox" id="c1"><span>I am 18 or older, or I have my parent or guardian's permission.</span></label><label class="chk"><input type="checkbox" id="c2"><span>I agree to the <a href="/content-standards" target="_blank" style="color:var(--g)">Content Standards</a> and <a href="/clipper-guidelines" target="_blank" style="color:var(--g)">Clipper Guidelines</a>.</span></label><button class="btn" id="go" style="margin-top:8px">Continue</button> <span id="er" class="mut"></span></div>`;
+  document.body.appendChild(m);
+  $('#go').onclick=async()=>{if(!$('#c1').checked||!$('#c2').checked)return $('#er').textContent='Please tick both boxes.';try{await api('/api/onboard','POST',{age:true,terms:true});m.remove();await boot()}catch(e){$('#er').textContent=e}};
+}
+
+addEventListener('hashchange',()=>{if(S&&S.user){$('#mn')&&($('#mn').hidden=true);draw()}});
+boot();
+</script>
+</body>
+</html>
