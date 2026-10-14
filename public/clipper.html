@@ -53,11 +53,11 @@ function login(){$('#root').innerHTML=`<div class="login"><img src="/logo.webp" 
 async function boot(){S=await api('/api/me');S.user?draw():login()}
 
 function draw(){
-  const u=S.user,h=(location.hash||'#home').slice(1);
+  const u=S.user,h0=(location.hash||'#home').slice(1),h=h0.split('/')[0];
   $('#root').innerHTML=`<div class="app"><aside><div class="brand"><img src="/logo-mark.png" alt="">SIDQ Creative</div><small>GENERAL</small>${NAV.slice(0,3).map(n=>link(n,h)).join('')}<small>ACTIVITY</small>${NAV.slice(3).map(n=>link(n,h)).join('')}<small>SUPPORT</small><a href="https://wa.me/447362449938" target="_blank" rel="noopener">Live Support</a></aside>
   <div><header><span class="wal">$0.00</span><img class="av" id="av" src="${esc(u.avatar)}" alt="Your profile"><div class="menu" id="mn" hidden><a href="#profile">My Profile</a><a href="#settings">Account Settings</a><a href="#accounts">Connected Accounts</a><a href="#mine">My Campaigns</a><a href="/auth/logout" style="color:#ff6b6b">Sign out</a></div></header><main id="main"></main></div></div>`;
   $('#av').onclick=()=>$('#mn').hidden=!$('#mn').hidden;
-  (V[h]||V.home)();
+  (V[h]||V.home)(h0.split('/')[1]);
   if(!u.onboarded)onboard();
 }
 
@@ -78,10 +78,24 @@ const V={
    document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{if(confirm('Remove this account?')){await api('/api/accounts/'+b.dataset.del,'DELETE');await boot()}})},
   users:soon('Users','Browse the clipper community and see top profiles.'),
   leaderboard:soon('Leaderboard','See the top clippers by views, followers and money earned.'),
-  campaigns:soon('Campaigns','Browse campaigns, read the rules and join with your accounts.'),
-  mine:soon('My Campaigns','Your joined campaigns, submissions and earnings will show here.')
+  campaigns(){list('Campaigns',c=>c.status==='live')},
+  campaign:async id=>{try{const c=await api('/api/campaigns/'+(+id||0));
+    $('#main').innerHTML=`<a href="#campaigns" class="mut">&larr; All campaigns</a><h2 style="margin-top:8px">${esc(c.title)}</h2>
+    <div class="grid"><div class="card"><div class="mut">Rate</div><div class="big">$${c.rate.toFixed(2)}<span class="mut" style="font-size:13px"> / 1K views</span></div></div><div class="card"><div class="mut">Budget</div><div class="big">$${c.budget.toLocaleString()}</div></div><div class="card"><div class="mut">Minimum views per video</div><div class="big">${c.min_views.toLocaleString()}</div></div><div class="card"><div class="mut">Max payout per video</div><div class="big">${c.max_payout==null?'No cap':'$'+c.max_payout}</div></div></div>
+    <div class="card"><h3>About</h3><p style="white-space:pre-wrap">${esc(c.brief)||'No description yet.'}</p><p class="mut" style="margin-top:10px">Platforms: ${c.platforms.map(esc).join(', ')}. Submit within ${c.submit_hours} hours of posting. Minimum followers: ${c.min_followers}.</p></div>
+    <div class="card"><h3>Rules</h3>${c.rules?`<p style="white-space:pre-wrap">${esc(c.rules)}</p>`:'<p class="mut">Join the campaign to unlock the full rules.</p>'}</div>
+    ${c.status==='live'&&!c.joined?'<button class="btn" id="jn">Join campaign</button> <span id="ms" class="mut"></span>':c.joined?'<div class="note">You joined this campaign. Video submissions open in the next update.</div>':''}`;
+    const b=$('#jn');if(b)b.onclick=async()=>{try{await api('/api/campaigns/'+c.id+'/join','POST');V.campaign(c.id)}catch(e){$('#ms').textContent=e}}
+  }catch(e){$('#main').innerHTML=`<div class="card">${esc(e)}</div>`}},
+  mine(){list('My Campaigns',c=>c.joined)}
 };
 
+async function list(t,f){
+  $('#main').innerHTML=`<h2>${t}</h2><p class="mut">Loading...</p>`;
+  try{const a=(await api('/api/campaigns')).filter(f);
+    $('#main').innerHTML=`<h2>${t}</h2>`+(a.length?`<div class="grid">${a.map(c=>`<a class="card" style="text-decoration:none;display:block" href="#campaign/${c.id}"><div class="mut">${esc(c.label)} ${c.status==='ended'?'<span class="tag">Ended</span>':''} ${c.joined?'<span class="tag" style="color:var(--g);border-color:var(--g)">Joined</span>':''}</div><h3 style="margin:6px 0">${esc(c.title)}</h3><div class="mut">Budget $${c.budget.toLocaleString()}</div><div class="big">$${c.rate.toFixed(2)}<span class="mut" style="font-size:13px"> / 1K views</span></div><div class="mut" style="margin-top:6px">${c.platforms.map(esc).join(', ')}</div></a>`).join('')}</div>`:'<div class="card"><p class="mut">No campaigns here yet.</p></div>')
+  }catch(e){$('#main').innerHTML=`<h2>${t}</h2><div class="card">${esc(e)}</div>`}
+}
 function onboard(){
   const m=document.createElement('div');m.className='modal';
   m.innerHTML=`<div class="card"><h3>Before you start</h3><label class="chk"><input type="checkbox" id="c1"><span>I am 18 or older, or I have my parent or guardian's permission.</span></label><label class="chk"><input type="checkbox" id="c2"><span>I agree to the <a href="/content-standards" target="_blank" style="color:var(--g)">Content Standards</a> and <a href="/clipper-guidelines" target="_blank" style="color:var(--g)">Clipper Guidelines</a>.</span></label><button class="btn" id="go" style="margin-top:8px">Continue</button> <span id="er" class="mut"></span></div>`;

@@ -17,6 +17,7 @@ td{border-top:1px solid #222;padding:8px 6px;vertical-align:top;word-break:break
 #msg{color:#b7e222;margin-left:12px}#le{color:#f87171;margin-left:12px}
 .bar{position:sticky;bottom:0;background:#0a0a0af0;padding:14px 0}
 .tabs2{display:flex;gap:8px;margin:8px 0 12px}.tabs2 button{background:#151515;color:#fff;border:1px solid #333}.tabs2 button.on{background:#b7e222;color:#000}.tabs2 b{background:#f87171;color:#000;border-radius:99px;padding:0 8px;margin-left:6px}.tabs2 b:empty{display:none}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 </style>
 </head>
 <body>
@@ -29,10 +30,22 @@ td{border-top:1px solid #222;padding:8px 6px;vertical-align:top;word-break:break
 </form>
 
 <div id="ed" hidden>
-  <div class="tabs2"><button data-k="home">Overview</button><button data-k="customer">Customers <b id="nc"></b></button><button data-k="clipper">Clippers <b id="nk"></b></button><button data-k="content">Content</button><button data-k="blog">Blog</button><button data-k="seo">SEO</button></div>
+  <div class="tabs2"><button data-k="home">Overview</button><button data-k="customer">Customers <b id="nc"></b></button><button data-k="clipper">Clippers <b id="nk"></b></button><button data-k="content">Content</button><button data-k="blog">Blog</button><button data-k="campaigns">Campaigns</button><button data-k="seo">SEO</button></div>
   <div data-pg="home"><h2>Overview</h2><div id="ov"></div></div>
   <div data-pg="content"><div id="f"></div>
   <div class="bar"><button id="sv">Save changes</button><span id="msg" role="status"></span></div></div>
+  <div data-pg="campaigns"><h2>Launch a campaign</h2>
+  <label>Title<input id="ct"></label>
+  <div class="r2"><label>Label (example: Content, Edits, Gaming)<input id="cl" placeholder="Content"></label><label>Image link (optional)<input id="ci"></label></div>
+  <div class="r2"><label>Rate per 1K views ($)<input id="cr" type="number" step="0.01" value="1"></label><label>Budget ($)<input id="cb" type="number" value="1000"></label></div>
+  <div class="r2"><label>Minimum views per video<input id="cm" type="number" value="1000"></label><label>Max payout per video ($, empty means no cap)<input id="cx" type="number"></label></div>
+  <div class="r2"><label>Submit within (hours of posting)<input id="ch" type="number" value="24"></label><label>Minimum followers<input id="cf" type="number" value="0"></label></div>
+  <label>Platforms</label><p><label style="display:inline-block;margin-right:16px"><input type="checkbox" class="cp" value="youtube" checked style="width:auto"> YouTube</label><label style="display:inline-block;margin-right:16px"><input type="checkbox" class="cp" value="tiktok" checked style="width:auto"> TikTok</label><label style="display:inline-block"><input type="checkbox" class="cp" value="instagram" checked style="width:auto"> Instagram</label></p>
+  <label>Description<textarea id="cd" rows="4"></textarea></label>
+  <label>Rules (clippers see them after joining)<textarea id="cu" rows="6"></textarea></label>
+  <label style="display:inline-block"><input type="checkbox" id="cv" style="width:auto"> Make it live now</label><br><br>
+  <button id="cs">Create campaign</button><span id="cm2" role="status" style="margin-left:12px"></span>
+  <h2>All campaigns</h2><div id="cl2"></div></div>
   <div data-pg="seo"><h2>Page titles, descriptions and headings</h2><p>Leave a box empty to use the default (shown in grey). Home page headings: change Hero line 1 and 2 under Content.</p><div id="sp"></div><div class="bar"><button id="ssv">Save SEO</button><span id="smsg" role="status"></span></div></div>
   <div data-pg="blog"><h2>Blog (SEO)</h2>
   <label>Title<input id="bt"></label>
@@ -95,13 +108,19 @@ function go(k){tab=k;location.hash=k;
   document.querySelectorAll('.tabs2 button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
   $('#ph').textContent=k==='clipper'?'Clipper applications':'Customer applications';
   $('#ov').innerHTML=['customer','clipper'].map(t=>`<p><b>${LS.filter(l=>l.type===t).length}</b> ${t} applications, <b>${LS.filter(l=>l.type===t&&!l.seen).length}</b> new</p>`).join('');
-  if(k==='customer'||k==='clipper')showLeads();else badge();if(k==='seo')seoLoad()}
+  if(k==='customer'||k==='clipper')showLeads();else badge();if(k==='seo')seoLoad();if(k==='campaigns')campLoad()}
 $('#ls').onclick=async e=>{const id=e.target.dataset.dl;if(id&&confirm('Delete this application?')){await api('/api/leads/'+id,'DELETE');LS=LS.filter(l=>l.id!=id);showLeads()}};
 setInterval(async()=>{if(!tok||$('#ed').hidden)return;try{LS=await api('/api/leads');go(tab)}catch{}},30000);
 async function seoLoad(){const j=await api('/api/seo');SEO=j.SEO;window.SP=j.pages;
   $('#sp').innerHTML=j.pages.map(([p,n,t,d],i)=>{const o=SEO[p]||{};return `<h3>${esc(n)} <small>${esc(p)}</small></h3><label>Meta title<input data-sp="${i}" data-f="title" placeholder="${esc(t)}" value="${esc(o.title||'')}"></label><label>Meta description<textarea rows="2" data-sp="${i}" data-f="desc" placeholder="${esc(d)}">${esc(o.desc||'')}</textarea></label>${p==='/'?'':`<label>Main heading (H1)<input data-sp="${i}" data-f="h1" placeholder="${esc(n)}" value="${esc(o.h1||'')}"></label>`}`}).join('')}
 $('#ssv').onclick=async()=>{const o={};document.querySelectorAll('[data-sp]').forEach(i=>{const p=window.SP[i.dataset.sp][0];(o[p]=o[p]||{})[i.dataset.f]=i.value});
   try{await api('/api/seo','PUT',o);$('#smsg').textContent='Saved.'}catch(e){$('#smsg').textContent=e}};
+async function campLoad(){const l=await api('/api/admin/campaigns');
+  $('#cl2').innerHTML=l.length?`<table>${l.map(c=>`<tr><td><b>${esc(c.title)}</b><br><small>${esc(c.label)} | $${esc(c.rate)} per 1K | budget $${esc(c.budget)} | ${c.members} joined</small></td><td>${esc(c.status)}</td><td><button data-cs="${c.id}:live">Live</button> <button data-cs="${c.id}:ended">End</button> <button data-cs="${c.id}:draft">Draft</button> <button data-cd="${c.id}" style="background:#7f1d1d;color:#fff">Delete</button></td></tr>`).join('')}</table>`:'<p>No campaigns yet.</p>'}
+$('#cs').onclick=async()=>{try{await api('/api/admin/campaigns','POST',{title:$('#ct').value,label:$('#cl').value,image:$('#ci').value,rate:$('#cr').value,budget:$('#cb').value,min_views:$('#cm').value,max_payout:$('#cx').value,submit_hours:$('#ch').value,min_followers:$('#cf').value,platforms:[...document.querySelectorAll('.cp:checked')].map(i=>i.value),brief:$('#cd').value,rules:$('#cu').value,live:$('#cv').checked});
+  $('#cm2').textContent='Campaign created.';['ct','cd','cu'].forEach(i=>$('#'+i).value='');campLoad()}catch(e){$('#cm2').textContent=e}};
+$('#cl2').onclick=async e=>{const s=e.target.dataset.cs,d=e.target.dataset.cd;try{
+  if(s){const[i,st]=s.split(':');await api('/api/admin/campaigns/'+i,'PUT',{status:st})}else if(d&&confirm('Delete this campaign?'))await api('/api/admin/campaigns/'+d,'DELETE');else return;campLoad()}catch(x){alert(x)}};
 async function posts(){const p=await api('/api/posts');$('#bl').innerHTML=p.map(x=>`<p><a style="color:#b7e222" href="/blog/${esc(x.slug)}" target="_blank">${esc(x.title)}</a> <button data-del="${x.id}" style="padding:4px 12px;background:#7f1d1d;color:#fff">Delete</button></p>`).join('')}
 $('#bp').onclick=async()=>{try{const r=await api('/api/posts','POST',{title:$('#bt').value,descr:$('#bd').value,body:$('#bb').value});$('#bm').textContent='Published: /blog/'+r.slug;['bt','bd','bb'].forEach(i=>$('#'+i).value='');posts()}catch(e){$('#bm').textContent=e}};
 $('#bl').onclick=async e=>{const id=e.target.dataset.del;if(id&&confirm('Delete this post?')){await api('/api/posts/'+id,'DELETE');posts()}};
