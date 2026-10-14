@@ -23,3 +23,9 @@ DATABASE_URL=postgres://user:pass@localhost:5432/sidq ADMIN_PASSWORD=test npm st
 - Optional variable `SITE_URL` (for example https://sidqcreative.com) sets the address used in SEO tags.
 - After going live, add your site to Google Search Console and submit `/sitemap.xml`.
 - Write blog posts in admin under Blog (SEO). Each post gets its own page at `/blog/your-title`.
+
+## Clipper portal (Discord login)
+1. Go to discord.com/developers/applications > New Application > OAuth2.
+2. Add this redirect: `https://YOUR-DOMAIN/auth/discord/callback` (use your real Railway or custom domain, exactly).
+3. In Railway Variables add: `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, and `OWNER_DISCORD_ID` (your own Discord user ID: you become the owner when you first log in).
+4. Optional: `SESSION_SECRET` (a long random text). Clippers log in at `/clipper`.

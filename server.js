@@ -305,7 +305,8 @@ Send us the recording and tell us your goal.`],
 ["/tech-review-clipping", "Tech News and Review Clipping", "Tech News and Review Clipping by SIDQ Creative: clean, well-edited short clips for your audience.", "Tech news and reviews can be cut into quick takes that viewers can watch in a minute.\n\n## What we do\n\nWe find the best moments, edit them with captions and hooks, and deliver clips for YouTube, TikTok, Instagram, X and Facebook.\n\n## How we work\n\nWe show the key verdict or feature in the first seconds.\n\n## Get started\n\nSend us a video and tell us your goal."],
 ["/history-documentary-clipping", "History and Documentary Clipping", "History and Documentary Clipping by SIDQ Creative: clean, well-edited short clips for your audience.", "History and documentary channels have stories that can become short, gripping clips.\n\n## What we do\n\nWe find the best moments, edit them with captions and hooks, and deliver clips for YouTube, TikTok, Instagram, X and Facebook.\n\n## How we work\n\nWe choose the most surprising moments and keep the story easy to follow.\n\n## Get started\n\nSend us a video and tell us your goal."],
 ["/fitness-coaching-clipping", "Fitness and Coaching Clipping", "Fitness and Coaching Clipping by SIDQ Creative: clean, well-edited short clips for your audience.", "Coaches can share tips and demonstrations as short clips that attract new clients.\n\n## What we do\n\nWe find the best moments, edit them with captions and hooks, and deliver clips for YouTube, TikTok, Instagram, X and Facebook.\n\n## How we work\n\nWe show the key tip clearly with captions so viewers can follow along.\n\n## Get started\n\nSend us a video and tell us your goal."],
-["/clipper-guidelines", "Clipper Guidelines", "Guidelines for everyone who clips content with SIDQ Creative: clean content, honest edits and respect for creators.", "These guidelines apply to everyone who clips content with SIDQ Creative.\n\n## Follow the content standards\n\nDo not clip or promote music promotion, gambling, alcohol, illegal activities, haram content or adult content.\n\n## Keep the context\n\nDo not cut a clip in a way that changes what the speaker meant. Keep enough context so viewers understand.\n\n## Respect permission\n\nOnly clip content you have permission to clip. Do not claim that a page is official unless it is.\n\n## Be honest\n\nDo not buy fake views or use bots. Do not mislead people with titles that do not match the clip.\n\n## Quality\n\nUse clear captions, a strong first few seconds and clean audio.\n\n## Questions\n\nMessage us on WhatsApp at +44 7362 449938."]
+["/clipper-guidelines", "Clipper Guidelines", "Guidelines for everyone who clips content with SIDQ Creative: clean content, honest edits and respect for creators.", "These guidelines apply to everyone who clips content with SIDQ Creative.\n\n## Follow the content standards\n\nDo not clip or promote music promotion, gambling, alcohol, illegal activities, haram content or adult content.\n\n## Keep the context\n\nDo not cut a clip in a way that changes what the speaker meant. Keep enough context so viewers understand.\n\n## Respect permission\n\nOnly clip content you have permission to clip. Do not claim that a page is official unless it is.\n\n## Be honest\n\nDo not buy fake views or use bots. Do not mislead people with titles that do not match the clip.\n\n## Quality\n\nUse clear captions, a strong first few seconds and clean audio.\n\n## Questions\n\nMessage us on WhatsApp at +44 7362 449938."],
+["/clipping-for-everyone", "Video Clipping Agency for Everyone", "SIDQ Creative clips long videos for creators, streamers, podcasters, brands and businesses. Clean content, strong hooks and captions.", "We clip for everyone. If you make videos, we can turn them into short clips that reach more people.\n\n## Who we work with\n\nCreators, streamers, podcasters, coaches, educators, brands, businesses, nonprofits and public figures.\n\n## What we clip\n\nPodcasts, interviews, lectures, streams, webinars, tutorials, vlogs and any other long video.\n\n## Where we clip for\n\nYouTube, TikTok, Instagram, X and Facebook.\n\n## Our standards\n\nWe follow our content standards. We do not clip music promotion, gambling, alcohol, illegal, haram or adult content.\n\n## Get started\n\nSend us a video and tell us your goal."]
 ];
 LAND.forEach(([p, t, d, b]) => app.get(p, (q, r) => { const o = SEO[p] || {}; r.type('html').send(page(q, { title: o.title || t + ' | SIDQ Creative', desc: o.desc || d, path: p, type: 'website',
   body: `<h1>${esc(o.h1 || t)}</h1>${md(b)}<p><a href="https://wa.me/447362449938?text=${encodeURIComponent('Hi SIDQ Creative, I am interested in: ' + t)}"><b>Get a custom quote on WhatsApp</b></a></p>`,
@@ -424,6 +425,68 @@ const TOOLS = [
 ];
 TOOLS.forEach(([p, t, d, h]) => app.get(p, (q, r) => r.type('html').send(page(q, { title: t + ' | SIDQ Creative', desc: d, path: p, type: 'website', crumbs: [['Home', '/'], [t, p]], body: h }))));
 app.get('/.well-known/security.txt', (q, r) => r.type('text').send('Contact: https://wa.me/447362449938\nExpires: 2027-12-31T00:00:00.000Z\nPreferred-Languages: en\n'));
+// ---------- clipper portal: Discord login, profile, connected accounts ----------
+const SS = process.env.SESSION_SECRET || process.env.DISCORD_CLIENT_SECRET || SECRET;
+const DID = process.env.DISCORD_CLIENT_ID, DSEC = process.env.DISCORD_CLIENT_SECRET;
+const ck = q => Object.fromEntries((q.get('cookie') || '').split(';').map(c => c.trim().split('=')).filter(a => a[0]).map(([k, ...v]) => [k, decodeURIComponent(v.join('='))]));
+const setCk = (q, r, n, v, age) => r.append('Set-Cookie', `${n}=${encodeURIComponent(v)}; Path=/; HttpOnly; SameSite=Lax; ${q.secure ? 'Secure; ' : ''}Max-Age=${age}`);
+const sidMac = x => crypto.createHmac('sha256', SS).update(x).digest('hex');
+const whoAmI = async q => {
+  const [id, e, m] = (ck(q).sid || '').split('.');
+  if (!SS || !id || !(+e > Date.now()) || m !== sidMac(id + '.' + e)) return null;
+  return (await db.query('SELECT * FROM users WHERE id = $1 AND NOT banned', [+id])).rows[0] || null;
+};
+const needUser = wrap(async (q, r, n) => { const u = await whoAmI(q); if (!u) return r.status(401).json({ error: 'Please log in first' }); q.user = u; n(); });
+const RANKS = [['Noob', 0], ['Rookie', 1200], ['Clipper', 5000], ['Pro', 20000], ['Elite', 100000]];
+const redirectUri = q => site(q) + '/auth/discord/callback';
+
+app.get('/clipper', (q, r) => r.sendFile(path.join(__dirname, 'public', 'clipper.html')));
+app.get('/auth/discord', (q, r) => {
+  if (!DID || !DSEC) return r.status(503).send('Discord login is not set up yet. Add DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET in Railway Variables.');
+  const st = crypto.randomBytes(16).toString('hex'); setCk(q, r, 'st', st, 600);
+  r.redirect('https://discord.com/oauth2/authorize?' + new URLSearchParams({ client_id: DID, redirect_uri: redirectUri(q), response_type: 'code', scope: 'identify email', state: st }));
+});
+app.get('/auth/discord/callback', wrap(async (q, r) => {
+  const bad = () => r.status(400).send('Login failed. Please go back and try again.');
+  if (!DID || !DSEC || !q.query.code || q.query.state !== ck(q).st) return bad();
+  const t = await fetch('https://discord.com/api/oauth2/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ client_id: DID, client_secret: DSEC, grant_type: 'authorization_code', code: String(q.query.code), redirect_uri: redirectUri(q) }) }).then(x => x.json());
+  if (!t.access_token) return bad();
+  const d = await fetch('https://discord.com/api/users/@me', { headers: { Authorization: 'Bearer ' + t.access_token } }).then(x => x.json());
+  if (!d.id) return bad();
+  const role = d.id === process.env.OWNER_DISCORD_ID ? 'owner' : 'clipper';
+  const u = (await db.query(`INSERT INTO users (discord_id, username, avatar, email, role) VALUES ($1,$2,$3,$4,$5)
+    ON CONFLICT (discord_id) DO UPDATE SET username = $2, avatar = $3, email = $4, last_login = now(), role = CASE WHEN $5 = 'owner' THEN 'owner' ELSE users.role END RETURNING id`,
+    [d.id, clip(d.global_name || d.username, 40), d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.png?size=128` : '', clip(d.email, 120), role])).rows[0];
+  const e = Date.now() + 30 * 864e5;
+  setCk(q, r, 'sid', `${u.id}.${e}.${sidMac(u.id + '.' + e)}`, 30 * 86400); setCk(q, r, 'st', '', 0);
+  r.redirect('/clipper');
+}));
+app.get('/auth/logout', (q, r) => { setCk(q, r, 'sid', '', 0); r.redirect('/clipper'); });
+
+app.get('/api/me', wrap(async (q, r) => {
+  const u = await whoAmI(q); if (!u) return r.json({ user: null });
+  const accounts = (await db.query('SELECT id, platform, handle, followers, status FROM accounts WHERE user_id = $1 ORDER BY id', [u.id])).rows;
+  const i = RANKS.reduce((a, x, k) => u.xp >= x[1] ? k : a, 0), nx = RANKS[i + 1];
+  const staffHoliday = new Date().toLocaleDateString('en-US', { weekday: 'long', timeZone: 'Asia/Karachi' }) === 'Sunday';
+  r.json({ user: { id: u.id, username: u.username, avatar: u.avatar, role: u.role, bio: u.bio, onboarded: !!u.agreed_at, xp: u.xp, rank: RANKS[i][0], next: nx ? nx[1] : null }, accounts, staffHoliday });
+}));
+app.post('/api/onboard', needUser, wrap(async (q, r) => {
+  if (!(q.body && q.body.age && q.body.terms)) return r.status(400).json({ error: 'Please tick both boxes' });
+  await db.query('UPDATE users SET agreed_at = now() WHERE id = $1', [q.user.id]); r.json({ ok: true });
+}));
+app.put('/api/profile', needUser, wrap(async (q, r) => { await db.query('UPDATE users SET bio = $1 WHERE id = $2', [clip(q.body.bio, 200), q.user.id]); r.json({ ok: true }); }));
+app.post('/api/accounts', needUser, wrap(async (q, r) => {
+  const platform = String(q.body.platform), handle = String(q.body.handle || '').replace(/^@/, '').trim();
+  if (!['youtube', 'tiktok', 'instagram'].includes(platform) || !/^[A-Za-z0-9._-]{2,40}$/.test(handle)) return r.status(400).json({ error: 'Check the platform and username' });
+  const n = (await db.query('SELECT count(*)::int AS c FROM accounts WHERE user_id = $1', [q.user.id])).rows[0].c;
+  if (n >= 10) return r.status(400).json({ error: 'You can connect up to 10 accounts' });
+  try { await db.query('INSERT INTO accounts (user_id, platform, handle) VALUES ($1,$2,$3)', [q.user.id, platform, handle]); }
+  catch (e) { return r.status(409).json({ error: 'This account is already connected' }); }
+  r.json({ ok: true });
+}));
+app.delete('/api/accounts/:id', needUser, wrap(async (q, r) => { await db.query('DELETE FROM accounts WHERE id = $1 AND user_id = $2', [+q.params.id || 0, q.user.id]); r.json({ ok: true }); }));
+
 app.get('/api/seo', auth, (q, r) => r.json({ SEO, pages: [['/', 'Home page', (home.match(/<title>(.*?)<\/title>/) || [])[1] || '', (home.match(/name="description" content="([^"]*)/) || [])[1] || ''], ...LAND.map(x => [x[0], x[1], x[1] + ' | SIDQ Creative', x[2]])] }));
 app.put('/api/seo', auth, wrap(async (q, r) => {
   const clean = {};
@@ -736,6 +799,11 @@ async function seed3() {
       type TEXT, name TEXT, email TEXT, phone TEXT, budget TEXT, msg TEXT);
     ALTER TABLE leads ADD COLUMN IF NOT EXISTS seen BOOLEAN NOT NULL DEFAULT false;
     ALTER TABLE leads ADD COLUMN IF NOT EXISTS src TEXT;
+    CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, discord_id TEXT UNIQUE NOT NULL, username TEXT, avatar TEXT, email TEXT,
+      bio TEXT NOT NULL DEFAULT '', role TEXT NOT NULL DEFAULT 'clipper', xp INT NOT NULL DEFAULT 0, banned BOOLEAN NOT NULL DEFAULT false,
+      agreed_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), last_login TIMESTAMPTZ NOT NULL DEFAULT now());
+    CREATE TABLE IF NOT EXISTS accounts (id SERIAL PRIMARY KEY, user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE, platform TEXT NOT NULL,
+      handle TEXT NOT NULL, followers INT NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'pending', created_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE (platform, handle));
     CREATE TABLE IF NOT EXISTS posts (id SERIAL PRIMARY KEY, slug TEXT UNIQUE NOT NULL, title TEXT NOT NULL,
       descr TEXT, body TEXT NOT NULL, at TIMESTAMPTZ NOT NULL DEFAULT now());`);
   await seed();
