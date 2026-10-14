@@ -438,7 +438,7 @@ const whoAmI = async q => {
 };
 const needUser = wrap(async (q, r, n) => { const u = await whoAmI(q); if (!u) return r.status(401).json({ error: 'Please log in first' }); q.user = u; n(); });
 const RANKS = [['Noob', 0], ['Rookie', 1200], ['Clipper', 5000], ['Pro', 20000], ['Elite', 100000]];
-const redirectUri = q => site(q) + '/auth/discord/callback';
+const redirectUri = q => process.env.DISCORD_REDIRECT_URI || site(q) + '/auth/discord/callback';
 
 app.get('/clipper', (q, r) => r.sendFile(path.join(__dirname, 'public', 'clipper.html')));
 app.get('/auth/discord', (q, r) => {
@@ -451,7 +451,7 @@ app.get('/auth/discord/callback', wrap(async (q, r) => {
   if (!DID || !DSEC || !q.query.code || q.query.state !== ck(q).st) return bad();
   const t = await fetch('https://discord.com/api/oauth2/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ client_id: DID, client_secret: DSEC, grant_type: 'authorization_code', code: String(q.query.code), redirect_uri: redirectUri(q) }) }).then(x => x.json());
-  if (!t.access_token) return bad();
+  if (!t.access_token) { console.error('Discord token error:', JSON.stringify(t), 'redirect_uri used:', redirectUri(q)); return bad(); }
   const d = await fetch('https://discord.com/api/users/@me', { headers: { Authorization: 'Bearer ' + t.access_token } }).then(x => x.json());
   if (!d.id) return bad();
   const role = d.id === process.env.OWNER_DISCORD_ID ? 'owner' : 'clipper';
@@ -462,6 +462,8 @@ app.get('/auth/discord/callback', wrap(async (q, r) => {
   setCk(q, r, 'sid', `${u.id}.${e}.${sidMac(u.id + '.' + e)}`, 30 * 86400); setCk(q, r, 'st', '', 0);
   r.redirect('/clipper');
 }));
+app.get('/auth/discord/setup', (q, r) => r.type('html').send(page(q, { title: 'Discord login setup', desc: 'Discord login setup', path: '/auth/discord/setup', type: 'website',
+  body: `<h1>Discord login setup</h1><p>Copy this exact address into the Discord Developer Portal: your application, OAuth2, Redirects. Then click <b>Save Changes</b>.</p><pre style="background:#111;padding:14px;border-radius:10px;overflow:auto">${esc(redirectUri(q))}</pre><p>It must match letter for letter: https, the domain and the path, with no space and no slash at the end.</p>` })));
 app.get('/auth/logout', (q, r) => { setCk(q, r, 'sid', '', 0); r.redirect('/clipper'); });
 
 app.get('/api/me', wrap(async (q, r) => {
@@ -486,6 +488,40 @@ app.post('/api/accounts', needUser, wrap(async (q, r) => {
   r.json({ ok: true });
 }));
 app.delete('/api/accounts/:id', needUser, wrap(async (q, r) => { await db.query('DELETE FROM accounts WHERE id = $1 AND user_id = $2', [+q.params.id || 0, q.user.id]); r.json({ ok: true }); }));
+
+// ---------- campaigns ----------
+const campOut = x => ({ id: x.id, title: x.title, label: x.label, image: x.image, rate: +x.rate, budget: +x.budget, min_views: x.min_views,
+  max_payout: x.max_payout == null ? null : +x.max_payout, platforms: x.platforms.split(','), submit_hours: x.submit_hours, min_followers: x.min_followers, status: x.status });
+app.get('/api/admin/campaigns', auth, wrap(async (q, r) => r.json((await db.query('SELECT c.*, (SELECT count(*)::int FROM campaign_members m WHERE m.campaign_id = c.id) AS members FROM campaigns c ORDER BY id DESC')).rows)));
+app.post('/api/admin/campaigns', auth, wrap(async (q, r) => {
+  if (new Date().toLocaleDateString('en-US', { weekday: 'long', timeZone: 'Asia/Karachi' }) === 'Sunday') return r.status(403).json({ error: 'Sunday holiday: new campaigns cannot be launched today' });
+  const b = q.body || {}, num = (v, d) => (v === '' || v == null || !Number.isFinite(+v)) ? d : +v;
+  if (!clip(b.title, 100).trim()) return r.status(400).json({ error: 'A title is needed' });
+  const pl = (Array.isArray(b.platforms) ? b.platforms : []).filter(x => ['youtube', 'tiktok', 'instagram'].includes(x)).join(',') || 'youtube,tiktok,instagram';
+  const id = (await db.query(`INSERT INTO campaigns (title, label, brief, rules, image, rate, budget, min_views, max_payout, platforms, submit_hours, min_followers, status)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id`, [clip(b.title, 100), clip(b.label, 30) || 'Content', clip(b.brief, 4000), clip(b.rules, 6000), clip(b.image, 300),
+    num(b.rate, 1), num(b.budget, 0), Math.round(num(b.min_views, 1000)), num(b.max_payout, null), pl, Math.round(num(b.submit_hours, 24)), Math.round(num(b.min_followers, 0)), b.live ? 'live' : 'draft'])).rows[0].id;
+  r.json({ ok: true, id });
+}));
+app.put('/api/admin/campaigns/:id', auth, wrap(async (q, r) => { await db.query('UPDATE campaigns SET status = $1 WHERE id = $2', [['draft', 'live', 'ended'].includes(q.body.status) ? q.body.status : 'draft', +q.params.id || 0]); r.json({ ok: true }); }));
+app.delete('/api/admin/campaigns/:id', auth, wrap(async (q, r) => { await db.query('DELETE FROM campaigns WHERE id = $1', [+q.params.id || 0]); r.json({ ok: true }); }));
+app.get('/api/campaigns', needUser, wrap(async (q, r) => {
+  const rows = (await db.query(`SELECT c.*, EXISTS (SELECT 1 FROM campaign_members m WHERE m.campaign_id = c.id AND m.user_id = $1) AS joined FROM campaigns c WHERE c.status IN ('live','ended') ORDER BY c.id DESC`, [q.user.id])).rows;
+  r.json(rows.map(x => ({ ...campOut(x), joined: x.joined })));
+}));
+app.get('/api/campaigns/:id', needUser, wrap(async (q, r) => {
+  const x = (await db.query(`SELECT c.*, EXISTS (SELECT 1 FROM campaign_members m WHERE m.campaign_id = c.id AND m.user_id = $2) AS joined FROM campaigns c WHERE c.id = $1 AND c.status IN ('live','ended')`, [+q.params.id || 0, q.user.id])).rows[0];
+  if (!x) return r.status(404).json({ error: 'Campaign not found' });
+  r.json({ ...campOut(x), brief: x.brief, joined: x.joined, rules: x.joined ? x.rules : null });
+}));
+app.post('/api/campaigns/:id/join', needUser, wrap(async (q, r) => {
+  if (!q.user.agreed_at) return r.status(400).json({ error: 'Please finish the start-up steps first' });
+  const x = (await db.query('SELECT status FROM campaigns WHERE id = $1', [+q.params.id || 0])).rows[0];
+  if (!x || x.status !== 'live') return r.status(400).json({ error: 'This campaign is not open' });
+  if (!(await db.query('SELECT 1 FROM accounts WHERE user_id = $1 LIMIT 1', [q.user.id])).rowCount) return r.status(400).json({ error: 'Connect at least one account first' });
+  await db.query('INSERT INTO campaign_members (campaign_id, user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING', [+q.params.id, q.user.id]);
+  r.json({ ok: true });
+}));
 
 app.get('/api/seo', auth, (q, r) => r.json({ SEO, pages: [['/', 'Home page', (home.match(/<title>(.*?)<\/title>/) || [])[1] || '', (home.match(/name="description" content="([^"]*)/) || [])[1] || ''], ...LAND.map(x => [x[0], x[1], x[1] + ' | SIDQ Creative', x[2]])] }));
 app.put('/api/seo', auth, wrap(async (q, r) => {
@@ -804,6 +840,12 @@ async function seed3() {
       agreed_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), last_login TIMESTAMPTZ NOT NULL DEFAULT now());
     CREATE TABLE IF NOT EXISTS accounts (id SERIAL PRIMARY KEY, user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE, platform TEXT NOT NULL,
       handle TEXT NOT NULL, followers INT NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'pending', created_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE (platform, handle));
+    CREATE TABLE IF NOT EXISTS campaigns (id SERIAL PRIMARY KEY, title TEXT NOT NULL, label TEXT NOT NULL DEFAULT 'Content', brief TEXT NOT NULL DEFAULT '',
+      rules TEXT NOT NULL DEFAULT '', image TEXT NOT NULL DEFAULT '', rate NUMERIC(8,2) NOT NULL DEFAULT 1, budget NUMERIC(12,2) NOT NULL DEFAULT 0,
+      min_views INT NOT NULL DEFAULT 1000, max_payout NUMERIC(10,2), platforms TEXT NOT NULL DEFAULT 'youtube,tiktok,instagram', submit_hours INT NOT NULL DEFAULT 24,
+      min_followers INT NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'draft', created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+    CREATE TABLE IF NOT EXISTS campaign_members (campaign_id INT NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE, joined_at TIMESTAMPTZ NOT NULL DEFAULT now(), PRIMARY KEY (campaign_id, user_id));
     CREATE TABLE IF NOT EXISTS posts (id SERIAL PRIMARY KEY, slug TEXT UNIQUE NOT NULL, title TEXT NOT NULL,
       descr TEXT, body TEXT NOT NULL, at TIMESTAMPTZ NOT NULL DEFAULT now());`);
   await seed();
