@@ -6,104 +6,186 @@
 <meta name="robots" content="noindex">
 <title>Clipper Portal | SIDQ Creative</title>
 <link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-:root{--g:#b7e222;--m:#8f8f8f;--l:#242424}
+:root{--bg:#0a0b0d;--s1:#111317;--s2:#171a20;--bd:#1f232b;--tx:#f3f4f6;--mu:#8b93a1;--g:#b7e222;--r:16px}
 *{box-sizing:border-box;margin:0}
-body{background:#0a0a0a;color:#fff;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
-a{color:inherit}button{font:inherit;cursor:pointer}
-.login{min-height:100vh;display:grid;place-content:center;justify-items:center;gap:18px;text-align:center;padding:24px}
-.login img{width:140px;height:auto}.login h1{font-size:34px}.login p{color:var(--m);max-width:430px}
-.btn{background:var(--g);color:#000;border:0;border-radius:99px;padding:13px 26px;font-weight:700;text-decoration:none;display:inline-block}
-.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
-aside{background:#111;border-right:1px solid var(--l);padding:18px 12px;position:sticky;top:0;height:100vh}
-.brand{display:flex;gap:10px;align-items:center;font-weight:800;padding:6px 10px 18px}.brand img{width:28px;height:28px}
-aside small{display:block;color:var(--m);font-size:11px;letter-spacing:.1em;margin:18px 10px 6px}
-aside a{display:block;padding:10px 12px;border-radius:10px;color:#cfcfcf;text-decoration:none}
-aside a:hover{background:#1a1a1a}aside a.on{background:#1b1f10;color:var(--g)}
-header{display:flex;justify-content:flex-end;align-items:center;gap:14px;padding:12px 24px;border-bottom:1px solid var(--l);position:relative}
-.wal{border:1px solid var(--l);border-radius:99px;padding:6px 14px;color:var(--g);font-weight:700}
-.av{width:38px;height:38px;border-radius:50%;object-fit:cover;cursor:pointer;background:#222}
-.menu{position:absolute;right:24px;top:58px;background:#151515;border:1px solid var(--l);border-radius:14px;padding:8px;min-width:210px;z-index:5}
-.menu a{display:block;padding:10px;border-radius:8px;text-decoration:none}.menu a:hover{background:#1f1f1f}
-main{padding:28px;max-width:1100px}h2{font-size:26px;margin-bottom:16px}
-.card{background:#111;border:1px solid var(--l);border-radius:18px;padding:20px;margin-bottom:14px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:14px}.grid .card{margin:0}
-.big{font-size:32px;font-weight:800;color:var(--g);line-height:1.2}.mut{color:var(--m)}
-.bar{height:8px;background:#222;border-radius:9px;overflow:hidden;margin-top:10px}.bar i{display:block;height:100%;background:var(--g)}
-input,textarea,select{width:100%;background:#0c0c0c;border:1px solid #2a2a2a;border-radius:10px;color:#fff;padding:12px;font:inherit;margin:6px 0 12px}
-.tag{font-size:12px;border:1px solid #6b4a00;border-radius:99px;padding:2px 10px;color:#f5c542}
-.row{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--l)}
-.note{background:#1b1f10;border:1px solid #3a4a12;border-radius:12px;padding:12px 16px;margin-bottom:14px}
-.modal{position:fixed;inset:0;background:#000b;display:grid;place-items:center;z-index:20;padding:20px}.modal .card{max-width:480px}
-.chk{display:flex;gap:10px;align-items:flex-start;margin:10px 0}.chk input{width:auto;margin:4px 0 0}
-@media(max-width:800px){.app{grid-template-columns:1fr}aside{position:static;height:auto;display:flex;flex-wrap:wrap;gap:4px}aside small{display:none}main{padding:16px}}
+body{background:var(--bg);color:var(--tx);font:15px/1.55 Outfit,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer;color:inherit;border:0;background:none}
+:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.mu{color:var(--mu)}.g{color:var(--g)}
+/* login */
+.lg{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+.lg .l{padding:56px;display:flex;flex-direction:column;justify-content:center;gap:22px;background:radial-gradient(900px 500px at 20% 10%,#b7e22222,#0000 60%),#0d0f12;border-right:1px solid var(--bd)}
+.lg h1{font-size:clamp(34px,4.4vw,56px);line-height:1.02;font-weight:800;letter-spacing:-.03em}.lg h1 span{color:var(--g)}
+.lg ul{list-style:none;padding:0;display:grid;gap:12px;color:#cdd2da}.lg li{display:flex;gap:10px;align-items:center}.lg li .ic{color:var(--g)}
+.lg .r{display:grid;place-content:center;padding:32px}
+.box{width:min(400px,86vw);display:grid;gap:12px;text-align:center}
+.box img{width:96px;margin:0 auto}.box h2{font-size:26px}
+.sb{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 18px;border-radius:12px;font-weight:600;background:#fff;color:#111;border:1px solid #ddd}
+.sb.d{background:#5865f2;color:#fff;border-color:#5865f2}.sb:hover{filter:brightness(.94)}
+/* app shell */
+.app{display:grid;grid-template-columns:252px 1fr;min-height:100vh}
+aside{position:sticky;top:0;height:100vh;background:#0d0f12;border-right:1px solid var(--bd);padding:18px 14px;display:flex;flex-direction:column;gap:4px}
+.br{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;padding:6px 10px 18px}.br img{width:30px;height:30px}
+aside small{font-size:11px;letter-spacing:.12em;color:#5d6572;margin:16px 12px 6px}
+.nv{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;color:#aab1bd;transition:.15s;position:relative}
+.nv:hover{background:var(--s2);color:#fff}.nv.on{background:linear-gradient(90deg,#b7e22222,#b7e22208);color:var(--g)}
+.nv.on::before{content:"";position:absolute;left:-14px;top:8px;bottom:8px;width:3px;border-radius:3px;background:var(--g)}
+.me{margin-top:auto;display:flex;gap:10px;align-items:center;padding:12px;border:1px solid var(--bd);border-radius:14px;background:var(--s1)}
+.me div{min-width:0}.me b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.me small{margin:0;letter-spacing:0;font-size:12px;color:var(--g)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:#0a0b0dcc;backdrop-filter:blur(12px);z-index:5}
+.top h1{font-size:18px;font-weight:600}.tr{display:flex;align-items:center;gap:12px;position:relative}
+.pill{display:flex;align-items:center;gap:8px;border:1px solid var(--bd);background:var(--s1);border-radius:99px;padding:7px 14px;font-weight:600}.pill .ic{color:var(--g);width:18px;height:18px}
+.av{position:relative;display:inline-grid;place-items:center;border-radius:50%;background:var(--s2);overflow:hidden;font-weight:800;color:var(--g);border:1px solid var(--bd);flex:none}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.mn{position:absolute;right:0;top:52px;background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:6px;min-width:220px;box-shadow:0 20px 50px #000a}
+.mn a{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;color:#cfd4dc}.mn a:hover{background:var(--s2)}
+main{padding:28px 32px 60px;max-width:1240px;width:100%}
+h2.pg{font-size:28px;font-weight:800;letter-spacing:-.02em;margin-bottom:18px}
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:22px;margin-bottom:16px}
+.card h3{font-size:17px;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.kp{display:flex;gap:14px;align-items:center}.kp .bx{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:#b7e2221a;color:var(--g)}
+.kp small{display:block;color:var(--mu)}.kp b{font-size:24px;font-weight:800}
+.hero{position:relative;overflow:hidden;display:flex;gap:20px;align-items:center;flex-wrap:wrap;padding:28px;background:radial-gradient(600px 220px at 85% 0,#b7e22226,#0000 70%),var(--s1)}
+.hero .nm{font-size:26px;font-weight:800}.xp{height:8px;background:#232730;border-radius:9px;overflow:hidden;margin-top:8px;min-width:220px}.xp i{display:block;height:100%;background:linear-gradient(90deg,#8fb516,var(--g));border-radius:9px}
+.bd{display:inline-flex;gap:6px;align-items:center;border:1px solid #b7e22255;color:var(--g);border-radius:99px;padding:2px 12px;font-size:13px;font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--g);color:#0a0b0d;font-weight:700;border-radius:12px;padding:12px 20px;transition:.15s}.btn:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.btn.o{background:none;color:var(--tx);border:1px solid var(--bd)}.btn.dn{background:#2a1416;color:#ff8a8a}
+.st{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--bd)}.st:first-of-type{border-top:0}
+.dot{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--bd);color:var(--mu);font-size:13px}.dot.ok{background:var(--g);color:#0a0b0d;border-color:var(--g)}.dot .ic{width:14px;height:14px;stroke-width:3}
+/* campaign cards */
+.cc{display:block;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;transition:.2s}.cc:hover{transform:translateY(-3px);border-color:#b7e22260;box-shadow:0 18px 40px #0008}
+.bn{position:relative;height:150px;padding:14px;display:flex;flex-direction:column;justify-content:flex-end}.bn h3{font-size:18px;line-height:1.2;text-shadow:0 2px 12px #000a}
+.chip{position:absolute;top:12px;left:12px;font-size:12px;font-weight:600;background:#000a;border-radius:99px;padding:3px 10px;backdrop-filter:blur(6px)}.chip.live,.chip.ok,.chip.end{left:auto;right:12px}.chip.live{color:var(--g)}.chip.ok{color:#0a0b0d;background:var(--g)}.chip.end{color:#ff9b9b}
+.cb{padding:16px}.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kv small{display:block;color:var(--mu);font-size:12px}.kv b{font-size:17px}.kv i{font-style:normal;color:var(--mu);font-size:12px}
+.pts{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}.pt{font-size:12px;border:1px solid color-mix(in srgb,var(--c) 45%,transparent);color:var(--c);border-radius:99px;padding:1px 10px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+input,select,textarea{background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:12px;padding:12px 14px;font:inherit;width:100%}input:focus,select:focus,textarea:focus{outline:2px solid #b7e22266;border-color:#b7e22288}
+.bar input{flex:1;min-width:200px}.bar select{width:auto}
+.two{display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start}.side{position:sticky;top:84px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--bd)}.row:first-of-type{border-top:0}.row span:first-child{color:var(--mu)}
+.hb{height:190px;border-radius:var(--r);margin-bottom:16px;padding:22px;display:flex;flex-direction:column;justify-content:flex-end;position:relative}
+.hb h2{font-size:28px;font-weight:800;line-height:1.1;text-shadow:0 2px 14px #000a}
+.em{text-align:center;padding:36px 20px;color:var(--mu)}.em .ic{width:36px;height:36px;color:#3b4250;margin-bottom:10px}
+.note{display:flex;gap:10px;background:#b7e2220f;border:1px solid #b7e22233;border-radius:12px;padding:12px 16px;margin-bottom:16px;color:#dfe8b8}.note .ic{color:var(--g);margin-top:2px}
+.ud{display:flex;gap:12px;align-items:center}
+.md{position:fixed;inset:0;background:#000c;display:grid;place-items:center;padding:20px;z-index:30}.md .card{max-width:480px;margin:0}
+.ck{display:flex;gap:10px;margin:12px 0;align-items:flex-start}.ck input{width:auto;margin-top:5px}
+.sk{height:120px;border-radius:var(--r);background:linear-gradient(90deg,var(--s1),var(--s2),var(--s1));background-size:200% 100%;animation:sk 1.2s infinite}@keyframes sk{to{background-position:-200% 0}}
+@media(max-width:900px){.lg{grid-template-columns:1fr}.lg .l{display:none}.two{grid-template-columns:1fr}.side{position:static}}
+@media(max-width:820px){.app{grid-template-columns:1fr}aside{position:fixed;top:auto;bottom:0;left:0;right:0;height:auto;flex-direction:row;justify-content:space-around;padding:6px;z-index:9;border-top:1px solid var(--bd);border-right:0}
+ aside small,.br,.me,.nv span{display:none}.nv{padding:10px 14px}.nv.on::before{display:none}main{padding:20px 16px 90px}.top{padding:12px 16px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M21 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
+<symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></symbol>
+<symbol id="i-rocket" viewBox="0 0 24 24"><path d="M12 15l-3-3a22 22 0 0 1 2-4 12 12 0 0 1 9-5c0 4-2 8-5 11a22 22 0 0 1-4 2zM9 12H4s.5-3 2-4c1-.7 3-.5 3-.5M12 15v5s3-.5 4-2c.7-1 .5-3 .5-3M5 15c-1 1-2 4-2 6 2 0 5-1 6-2"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></symbol>
+<symbol id="i-help" viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></symbol>
+<symbol id="i-wallet" viewBox="0 0 24 24"><path d="M20 7H5a2 2 0 0 1 0-4h13v4zM3 5v14a2 2 0 0 0 2 2h15V7M16 14h2"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/></symbol>
+<symbol id="i-dollar" viewBox="0 0 24 24"><path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></symbol>
+<symbol id="i-video" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5zM1 5h15v14H1z"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></symbol>
+<symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></symbol>
+<symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-4M12 8h.01"/></symbol>
+</defs></svg>
 <div id="root"></div>
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const api=(u,m='GET',b)=>fetch(u,{method:m,headers:{'Content-Type':'application/json'},body:b&&JSON.stringify(b)}).then(async r=>{const j=await r.json().catch(()=>({}));if(!r.ok)throw j.error||'Something went wrong';return j});
-const NAV=[['home','Home'],['users','Users'],['leaderboard','Leaderboard'],['campaigns','Campaigns'],['mine','My Campaigns']];
-const link=([k,t],h)=>`<a href="#${k}" class="${h===k?'on':''}">${t}</a>`;
+const I=n=>`<svg class="ic"><use href="#i-${n}"/></svg>`;
+const nm=u=>String(u.username||'').normalize('NFKC').replace(/[\u200B-\u200F\u2000-\u200A\u2060\uFEFF]/g,'').replace(/\s+/g,' ').trim()||'Clipper';
+const av=(u,s=40)=>`<span class="av" style="width:${s}px;height:${s}px;font-size:${Math.round(s/2.4)}px"><b>${esc(nm(u).slice(0,1).toUpperCase())}</b>${u.avatar?`<img src="${esc(u.avatar)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</span>`;
+const m=n=>'$'+Number(n).toLocaleString(undefined,{maximumFractionDigits:2}),k=n=>n>=1e6?+(n/1e6).toFixed(1)+'M':n>=1e3?+(n/1e3).toFixed(1)+'K':String(n);
+const PL={youtube:['YouTube','#ff5a5a'],tiktok:['TikTok','#2ee6dc'],instagram:['Instagram','#f0559b']};
+const plat=a=>a.map(p=>`<span class="pt" style="--c:${(PL[p]||[0,'#999'])[1]}">${esc((PL[p]||[p])[0])}</span>`).join('');
+const ban=t=>{let h=0;for(const c of t)h=(h*31+c.charCodeAt(0))%360;return `background:linear-gradient(135deg,hsl(${h} 50% 30%),hsl(${(h+55)%360} 55% 11%))`};
+const NAV=[['home','Home','home'],['users','Users','users'],['leaderboard','Leaderboard','trophy'],['campaigns','Campaigns','rocket'],['mine','My Campaigns','grid']];
+const TITLES={home:'Home',users:'Users',leaderboard:'Leaderboard',campaigns:'Campaigns',mine:'My Campaigns',campaign:'Campaign',profile:'My Profile',settings:'Account Settings',accounts:'Connected Accounts'};
 let S;
 
-function login(){$('#root').innerHTML=`<div class="login"><img src="/logo.webp" alt="SIDQ Creative"><h1>Clipper Portal</h1><p>Clip videos, join campaigns and get paid per 1,000 views. Log in with Discord to start.</p><a class="btn" href="/auth/discord">Log in with Discord</a><p style="font-size:13px">We only accept clean content: no music promotion, gambling, alcohol, illegal or haram content. <a href="/content-standards" style="color:var(--g)">Read the standards</a></p></div>`}
+async function login(){
+  const c=await api('/api/auth-config').catch(()=>({}));
+  const b=(c.google?`<a class="sb" href="/auth/google"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.2 5.5-4.7 7.2l7.5 5.8c4.4-4.1 7-10.1 7-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 12-2.1 16-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.5 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continue with Google</a>`:'')+(c.discord?`<a class="sb d" href="/auth/discord">Continue with Discord</a>`:'');
+  $('#root').innerHTML=`<div class="lg"><div class="l"><div class="ud" style="font-weight:800;font-size:20px"><img src="/logo-mark.png" width="34" alt="">SIDQ Creative</div><h1>Turn your edits into <span>income.</span></h1><p class="mu" style="max-width:460px;font-size:18px">Join campaigns, post clean clips and get paid per 1,000 views. No applications to wait for.</p><ul><li>${I('check')}Join instantly and start earning</li><li>${I('check')}Clear rules on every campaign</li><li>${I('check')}Withdraw from $10 with PayPal</li></ul></div>
+  <div class="r"><div class="box"><img src="/logo.webp" alt="SIDQ Creative"><h2>Welcome to the clipper portal</h2><p class="mu">Log in to see campaigns and start clipping.</p>${b||'<p class="mu">Login is not set up yet. Please come back soon.</p>'}<p class="mu" style="font-size:13px;margin-top:8px">Clean content only: no music promotion, gambling, alcohol, illegal or haram content. <a class="g" href="/content-standards">Read the standards</a></p></div></div></div>`}
 
 async function boot(){S=await api('/api/me');S.user?draw():login()}
 
 function draw(){
   const u=S.user,h0=(location.hash||'#home').slice(1),h=h0.split('/')[0];
-  $('#root').innerHTML=`<div class="app"><aside><div class="brand"><img src="/logo-mark.png" alt="">SIDQ Creative</div><small>GENERAL</small>${NAV.slice(0,3).map(n=>link(n,h)).join('')}<small>ACTIVITY</small>${NAV.slice(3).map(n=>link(n,h)).join('')}<small>SUPPORT</small><a href="https://wa.me/447362449938" target="_blank" rel="noopener">Live Support</a></aside>
-  <div><header><span class="wal">$0.00</span><img class="av" id="av" src="${esc(u.avatar)}" alt="Your profile"><div class="menu" id="mn" hidden><a href="#profile">My Profile</a><a href="#settings">Account Settings</a><a href="#accounts">Connected Accounts</a><a href="#mine">My Campaigns</a><a href="/auth/logout" style="color:#ff6b6b">Sign out</a></div></header><main id="main"></main></div></div>`;
-  $('#av').onclick=()=>$('#mn').hidden=!$('#mn').hidden;
+  $('#root').innerHTML=`<div class="app"><aside><a class="br" href="#home"><img src="/logo-mark.png" alt="">SIDQ Creative</a><small>MENU</small>${NAV.map(([k,t,i])=>`<a class="nv ${h===k||(h==='campaign'&&k==='campaigns')?'on':''}" href="#${k}">${I(i)}<span>${t}</span></a>`).join('')}<small>SUPPORT</small><a class="nv" href="https://wa.me/447362449938" target="_blank" rel="noopener">${I('help')}<span>Live Support</span></a>
+  <div class="me">${av(u,38)}<div><b>${esc(nm(u))}</b><small>${esc(u.rank)}</small></div></div></aside>
+  <div><div class="top"><h1>${TITLES[h]||'Home'}</h1><div class="tr"><span class="pill">${I('wallet')}$0.00</span><button id="am" aria-label="Account menu">${av(u,38)}</button>
+  <div class="mn" id="mn" hidden><a href="#profile">${I('user')}My Profile</a><a href="#settings">${I('sliders')}Account Settings</a><a href="#accounts">${I('link')}Connected Accounts</a><a href="#mine">${I('grid')}My Campaigns</a><a href="/auth/logout" style="color:#ff8a8a">${I('out')}Sign out</a></div></div></div><main id="main"></main></div></div>`;
+  $('#am').onclick=e=>{e.stopPropagation();$('#mn').hidden=!$('#mn').hidden};
   (V[h]||V.home)(h0.split('/')[1]);
   if(!u.onboarded)onboard();
 }
 
-const rankCard=()=>{const u=S.user,p=u.next?Math.min(100,u.xp/u.next*100):100;return `<div class="card"><div class="mut">Rank</div><div class="big">${esc(u.rank)}</div><div class="bar"><i style="width:${p}%"></i></div><div class="mut" style="margin-top:6px">${u.xp} / ${u.next||'max'} XP</div></div>`};
-const soon=(t,d)=>()=>{$('#main').innerHTML=`<h2>${t}</h2><div class="card"><p>${d}</p><p class="mut" style="margin-top:8px">This page is coming in the next update.</p></div>`};
+const rankCard=()=>{const u=S.user,p=u.next?Math.min(100,u.xp/u.next*100):100;return `<div><span class="bd">${I('shield')}${esc(u.rank)}</span><div class="xp"><i style="width:${p}%"></i></div><div class="mu" style="font-size:13px;margin-top:6px">${u.xp} / ${u.next||'max'} XP</div></div>`};
+const kpi=(i,t,v)=>`<div class="card kp" style="margin:0"><div class="bx">${I(i)}</div><div><small>${t}</small><b>${v}</b></div></div>`;
+const empty=(i,t,d)=>`<div class="card em">${I(i)}<div style="color:var(--tx);font-weight:600">${t}</div><div>${d}</div></div>`;
+const card=c=>`<a class="cc" href="#campaign/${c.id}"><div class="bn" style="${ban(c.title)}"><span class="chip">${esc(c.label)}</span>${c.status==='ended'?'<span class="chip end">Ended</span>':c.joined?'<span class="chip ok">Joined</span>':'<span class="chip live">Live</span>'}<h3>${esc(c.title)}</h3></div><div class="cb"><div class="kv"><div><small>Rate</small><b>${m(c.rate)}<i>/1K</i></b></div><div><small>Budget</small><b>${m(c.budget)}</b></div><div><small>Min views</small><b>${k(c.min_views)}</b></div></div><div class="pts">${plat(c.platforms)}</div></div></a>`;
+const skel=()=>'<div class="grid"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>';
 
 const V={
-  home(){const u=S.user;$('#main').innerHTML=`<h2>Welcome back, ${esc(u.username)}</h2>
-   <div class="grid"><div class="card"><div class="mut">Total earnings</div><div class="big">$0.00</div></div><div class="card"><div class="mut">Total views</div><div class="big">0</div></div><div class="card"><div class="mut">Submissions</div><div class="big">0</div></div>${rankCard()}</div>
-   <div class="card"><h3>Get started</h3><p class="mut" style="margin:6px 0 10px">1. Connect your YouTube, TikTok or Instagram account. 2. Wait for approval. 3. Join a campaign and submit your clips.</p><a class="btn" href="#accounts">Connect an account</a></div>
-   <div class="note">Campaigns are coming soon. Only clean content is accepted: no music promotion, gambling, alcohol, illegal or haram content. <a href="/content-standards" style="color:var(--g)">Read the standards</a></div>`},
-  profile(){const u=S.user;$('#main').innerHTML=`<h2>My Profile</h2><div class="card" style="display:flex;gap:16px;align-items:center"><img class="av" style="width:72px;height:72px" src="${esc(u.avatar)}" alt=""><div><div class="big" style="font-size:24px;color:#fff">${esc(u.username)}</div><div class="mut">${S.accounts.length} connected account(s)</div></div></div>${rankCard()}<div class="card"><div class="mut">Bio</div><p>${esc(u.bio)||'No bio yet.'}</p></div>`},
-  settings(){const u=S.user;$('#main').innerHTML=`<h2>Account Settings</h2><div class="card"><label>Username<input value="${esc(u.username)}" disabled></label><p class="mut" style="margin-bottom:12px">Your username and photo come from Discord.</p><label>Bio<textarea id="bio" rows="3" maxlength="200">${esc(u.bio)}</textarea></label><button class="btn" id="sv">Save</button> <span id="ms" class="mut"></span></div>`;
-   $('#sv').onclick=async()=>{try{await api('/api/profile','PUT',{bio:$('#bio').value});S.user.bio=$('#bio').value;$('#ms').textContent='Saved.'}catch(e){$('#ms').textContent=e}}},
-  accounts(){$('#main').innerHTML=`<h2>Connected Accounts</h2><div class="card">${S.accounts.length?S.accounts.map(a=>`<div class="row"><div><b>${esc(a.platform)}</b> @${esc(a.handle)} <span class="tag">${esc(a.status)}</span></div><button class="btn" style="background:#2a1212;color:#ff8a8a" data-del="${a.id}">Remove</button></div>`).join(''):'<p class="mut">No accounts yet.</p>'}</div>
-   <div class="card"><h3>Add an account</h3><p class="mut" style="margin:4px 0 10px">YouTube, TikTok and Instagram for now. A team member approves each account.</p><select id="pl"><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="instagram">Instagram</option></select><input id="hd" placeholder="Your username, without @" maxlength="40"><button class="btn" id="ad">Add account</button> <span id="ms" class="mut"></span></div>`;
-   $('#ad').onclick=async()=>{try{await api('/api/accounts','POST',{platform:$('#pl').value,handle:$('#hd').value});await boot()}catch(e){$('#ms').textContent=e}};
-   document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{if(confirm('Remove this account?')){await api('/api/accounts/'+b.dataset.del,'DELETE');await boot()}})},
-  users:soon('Users','Browse the clipper community and see top profiles.'),
-  leaderboard:soon('Leaderboard','See the top clippers by views, followers and money earned.'),
-  campaigns(){list('Campaigns',c=>c.status==='live')},
-  campaign:async id=>{try{const c=await api('/api/campaigns/'+(+id||0));
-    $('#main').innerHTML=`<a href="#campaigns" class="mut">&larr; All campaigns</a><h2 style="margin-top:8px">${esc(c.title)}</h2>
-    <div class="grid"><div class="card"><div class="mut">Rate</div><div class="big">$${c.rate.toFixed(2)}<span class="mut" style="font-size:13px"> / 1K views</span></div></div><div class="card"><div class="mut">Budget</div><div class="big">$${c.budget.toLocaleString()}</div></div><div class="card"><div class="mut">Minimum views per video</div><div class="big">${c.min_views.toLocaleString()}</div></div><div class="card"><div class="mut">Max payout per video</div><div class="big">${c.max_payout==null?'No cap':'$'+c.max_payout}</div></div></div>
-    <div class="card"><h3>About</h3><p style="white-space:pre-wrap">${esc(c.brief)||'No description yet.'}</p><p class="mut" style="margin-top:10px">Platforms: ${c.platforms.map(esc).join(', ')}. Submit within ${c.submit_hours} hours of posting. Minimum followers: ${c.min_followers}.</p></div>
-    <div class="card"><h3>Rules</h3>${c.rules?`<p style="white-space:pre-wrap">${esc(c.rules)}</p>`:'<p class="mut">Join the campaign to unlock the full rules.</p>'}</div>
-    ${c.status==='live'&&!c.joined?'<button class="btn" id="jn">Join campaign</button> <span id="ms" class="mut"></span>':c.joined?'<div class="note">You joined this campaign. Video submissions open in the next update.</div>':''}`;
-    const b=$('#jn');if(b)b.onclick=async()=>{try{await api('/api/campaigns/'+c.id+'/join','POST');V.campaign(c.id)}catch(e){$('#ms').textContent=e}}
-  }catch(e){$('#main').innerHTML=`<div class="card">${esc(e)}</div>`}},
-  mine(){list('My Campaigns',c=>c.joined)}
+  async home(){const u=S.user;$('#main').innerHTML=skel();let cs=[];try{cs=await api('/api/campaigns')}catch(e){}
+    const joined=cs.filter(c=>c.joined).length,live=cs.filter(c=>c.status==='live'&&!c.joined).slice(0,3),a=S.accounts.length;
+    $('#main').innerHTML=`<div class="card hero">${av(u,76)}<div style="flex:1;min-width:220px"><div class="mu">Welcome back</div><div class="nm">${esc(nm(u))}</div></div>${rankCard()}</div>
+    <div class="grid" style="margin-bottom:16px">${kpi('dollar','Total earnings','$0.00')}${kpi('eye','Total views','0')}${kpi('video','Submissions','0')}${kpi('rocket','Campaigns joined',joined)}</div>
+    <div class="two"><div><div class="card"><h3>Get started</h3>
+      <div class="st"><span class="dot ${a?'ok':''}">${a?I('check'):1}</span><div style="flex:1"><b>Connect an account</b><div class="mu">YouTube, TikTok or Instagram</div></div>${a?'':'<a class="btn o" href="#accounts">Connect</a>'}</div>
+      <div class="st"><span class="dot ${joined?'ok':''}">${joined?I('check'):2}</span><div style="flex:1"><b>Join a campaign</b><div class="mu">Read the rules and join</div></div>${joined?'':'<a class="btn o" href="#campaigns">Browse</a>'}</div>
+      <div class="st"><span class="dot">3</span><div style="flex:1"><b>Submit your first clip</b><div class="mu">Opens in the next update</div></div></div></div>
+      <div class="note">${I('shield')}<div>Only clean content is accepted: no music promotion, gambling, alcohol, illegal or haram content. <a class="g" href="/content-standards">Read the standards</a></div></div></div>
+      <div><h3 style="margin-bottom:12px">Open campaigns</h3>${live.length?live.map(card).join('<div style="height:16px"></div>'):empty('rocket','No new campaigns right now','New campaigns appear here as soon as they launch.')}</div></div>`},
+  async campaigns(){$('#main').innerHTML=`<h2 class="pg">Campaigns</h2>${skel()}`;let cs=[];try{cs=await api('/api/campaigns')}catch(e){return $('#main').innerHTML=empty('info','Could not load campaigns',esc(e))}
+    const draw2=()=>{const q=($('#q').value||'').toLowerCase(),p=$('#fp').value,s=$('#so').value;let a=cs.filter(c=>c.status==='live'&&(!q||c.title.toLowerCase().includes(q))&&(!p||c.platforms.includes(p)));
+      a.sort((x,y)=>s==='rate'?y.rate-x.rate:s==='budget'?y.budget-x.budget:y.id-x.id);$('#lst').innerHTML=a.length?`<div class="grid">${a.map(card).join('')}</div>`:empty('rocket','No campaigns found','Try a different search or check back soon.')};
+    $('#main').innerHTML=`<h2 class="pg">Campaigns</h2><div class="bar"><input id="q" placeholder="Search campaigns"><select id="fp"><option value="">All platforms</option><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="instagram">Instagram</option></select><select id="so"><option value="new">Newest</option><option value="rate">Highest rate</option><option value="budget">Highest budget</option></select></div><div id="lst"></div>`;
+    ['q','fp','so'].forEach(i=>$('#'+i).oninput=draw2);draw2()},
+  async mine(){$('#main').innerHTML=`<h2 class="pg">My Campaigns</h2>${skel()}`;try{const a=(await api('/api/campaigns')).filter(c=>c.joined);$('#main').innerHTML=`<h2 class="pg">My Campaigns</h2>`+(a.length?`<div class="grid">${a.map(card).join('')}</div>`:empty('grid','You have not joined a campaign yet','Browse campaigns and join one to start earning.'))}catch(e){$('#main').innerHTML=empty('info','Could not load',esc(e))}},
+  async campaign(id){$('#main').innerHTML=skel();try{const c=await api('/api/campaigns/'+(+id||0));
+    $('#main').innerHTML=`<a href="#campaigns" class="mu ud" style="margin-bottom:12px">${I('back')}All campaigns</a><div class="hb" style="${ban(c.title)}"><span class="bd" style="align-self:flex-start;margin-bottom:10px;background:#000a">${esc(c.label)}</span><h2>${esc(c.title)}</h2></div>
+    <div class="two"><div><div class="card"><h3>About</h3><p style="white-space:pre-wrap">${esc(c.brief)||'<span class="mu">No description yet.</span>'}</p></div>
+    <div class="card"><h3>Rules</h3>${c.rules?`<p style="white-space:pre-wrap">${esc(c.rules)}</p>`:`<div class="em" style="padding:20px">${I('shield')}<div>Join the campaign to unlock the full rules.</div></div>`}</div></div>
+    <div class="side card"><div class="row"><span>Rate</span><b class="g">${m(c.rate)} / 1K views</b></div><div class="row"><span>Budget</span><b>${m(c.budget)}</b></div><div class="row"><span>Minimum views per video</span><b>${c.min_views.toLocaleString()}</b></div><div class="row"><span>Max payout per video</span><b>${c.max_payout==null?'No cap':m(c.max_payout)}</b></div><div class="row"><span>Submit within</span><b>${c.submit_hours} hours</b></div><div class="row"><span>Minimum followers</span><b>${c.min_followers}</b></div><div class="row"><span>Platforms</span><span class="pts" style="margin:0">${plat(c.platforms)}</span></div>
+    <div style="margin-top:16px">${c.status==='live'&&!c.joined?'<button class="btn" id="jn" style="width:100%">Join campaign</button><div id="ms" class="mu" style="margin-top:8px"></div>':c.joined?`<div class="note" style="margin:0">${I('check')}<div>You joined this campaign. Video submissions open in the next update.</div></div>`:'<div class="mu">This campaign has ended.</div>'}</div></div></div>`;
+    const b=$('#jn');if(b)b.onclick=async()=>{try{await api('/api/campaigns/'+c.id+'/join','POST');V.campaign(c.id)}catch(e){$('#ms').textContent=e}}}catch(e){$('#main').innerHTML=empty('info','Campaign not found',esc(e))}},
+  async users(){$('#main').innerHTML=`<h2 class="pg">Users</h2>${skel()}`;try{const a=await api('/api/users');$('#main').innerHTML=`<h2 class="pg">Users</h2><div class="grid">${a.map(x=>`<div class="card ud" style="margin:0">${av(x,48)}<div style="min-width:0"><b>${esc(nm(x))}</b><div><span class="bd">${esc(x.rank)}</span> <span class="mu" style="font-size:13px">${x.accounts} account(s)</span></div></div></div>`).join('')}</div>`}catch(e){$('#main').innerHTML=empty('info','Could not load users',esc(e))}},
+  leaderboard(){$('#main').innerHTML=`<h2 class="pg">Leaderboard</h2>${empty('trophy','Rankings start with the first approved clips','Top clippers by views, followers and money earned will show here.')}`},
+  profile(){const u=S.user;$('#main').innerHTML=`<div class="card hero">${av(u,84)}<div style="flex:1;min-width:220px"><div class="nm">${esc(nm(u))}</div><div class="mu">${S.accounts.length} connected account(s)</div></div>${rankCard()}</div><div class="card"><h3>Bio</h3><p>${esc(u.bio)||'<span class="mu">No bio yet. Add one in Account Settings.</span>'}</p></div>`},
+  settings(){const u=S.user;$('#main').innerHTML=`<h2 class="pg">Account Settings</h2><div class="card" style="max-width:640px"><label class="mu">Username</label><input value="${esc(nm(u))}" disabled style="margin:6px 0 4px"><div class="mu" style="font-size:13px;margin-bottom:16px">Your name and photo come from the account you logged in with.</div><label class="mu">Bio</label><textarea id="bio" rows="4" maxlength="200" style="margin:6px 0 14px">${esc(u.bio)}</textarea><button class="btn" id="sv">Save changes</button> <span id="ms" class="mu"></span></div>`;
+    $('#sv').onclick=async()=>{try{await api('/api/profile','PUT',{bio:$('#bio').value});S.user.bio=$('#bio').value;$('#ms').textContent='Saved.'}catch(e){$('#ms').textContent=e}}},
+  accounts(){$('#main').innerHTML=`<h2 class="pg">Connected Accounts</h2><div class="two"><div class="card">${S.accounts.length?S.accounts.map(a=>`<div class="st"><span class="pt" style="--c:${(PL[a.platform]||[0,'#999'])[1]}">${esc((PL[a.platform]||[a.platform])[0])}</span><div style="flex:1"><b>@${esc(a.handle)}</b></div><span class="bd" style="${a.status==='approved'?'':'color:#f5c542;border-color:#6b4a0088'}">${esc(a.status)}</span><button class="btn dn" data-del="${a.id}" style="padding:8px 14px">Remove</button></div>`).join(''):`<div class="em">${I('link')}<div style="color:var(--tx);font-weight:600">No accounts yet</div><div>Add your first account to join campaigns.</div></div>`}</div>
+    <div class="card"><h3>Add an account</h3><p class="mu" style="margin-bottom:12px">YouTube, TikTok and Instagram. A team member approves each account.</p><select id="pl" style="margin-bottom:10px"><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="instagram">Instagram</option></select><input id="hd" placeholder="Username, without @" maxlength="40" style="margin-bottom:12px"><button class="btn" id="ad" style="width:100%">Add account</button><div id="ms" class="mu" style="margin-top:8px"></div></div></div>`;
+    $('#ad').onclick=async()=>{try{await api('/api/accounts','POST',{platform:$('#pl').value,handle:$('#hd').value});await boot()}catch(e){$('#ms').textContent=e}};
+    document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{if(confirm('Remove this account?')){await api('/api/accounts/'+b.dataset.del,'DELETE');await boot()}})}
 };
 
-async function list(t,f){
-  $('#main').innerHTML=`<h2>${t}</h2><p class="mut">Loading...</p>`;
-  try{const a=(await api('/api/campaigns')).filter(f);
-    $('#main').innerHTML=`<h2>${t}</h2>`+(a.length?`<div class="grid">${a.map(c=>`<a class="card" style="text-decoration:none;display:block" href="#campaign/${c.id}"><div class="mut">${esc(c.label)} ${c.status==='ended'?'<span class="tag">Ended</span>':''} ${c.joined?'<span class="tag" style="color:var(--g);border-color:var(--g)">Joined</span>':''}</div><h3 style="margin:6px 0">${esc(c.title)}</h3><div class="mut">Budget $${c.budget.toLocaleString()}</div><div class="big">$${c.rate.toFixed(2)}<span class="mut" style="font-size:13px"> / 1K views</span></div><div class="mut" style="margin-top:6px">${c.platforms.map(esc).join(', ')}</div></a>`).join('')}</div>`:'<div class="card"><p class="mut">No campaigns here yet.</p></div>')
-  }catch(e){$('#main').innerHTML=`<h2>${t}</h2><div class="card">${esc(e)}</div>`}
-}
 function onboard(){
-  const m=document.createElement('div');m.className='modal';
-  m.innerHTML=`<div class="card"><h3>Before you start</h3><label class="chk"><input type="checkbox" id="c1"><span>I am 18 or older, or I have my parent or guardian's permission.</span></label><label class="chk"><input type="checkbox" id="c2"><span>I agree to the <a href="/content-standards" target="_blank" style="color:var(--g)">Content Standards</a> and <a href="/clipper-guidelines" target="_blank" style="color:var(--g)">Clipper Guidelines</a>.</span></label><button class="btn" id="go" style="margin-top:8px">Continue</button> <span id="er" class="mut"></span></div>`;
-  document.body.appendChild(m);
-  $('#go').onclick=async()=>{if(!$('#c1').checked||!$('#c2').checked)return $('#er').textContent='Please tick both boxes.';try{await api('/api/onboard','POST',{age:true,terms:true});m.remove();await boot()}catch(e){$('#er').textContent=e}};
+  const d=document.createElement('div');d.className='md';
+  d.innerHTML=`<div class="card"><h3 style="font-size:22px">Before you start</h3><p class="mu">Two quick confirmations.</p><label class="ck"><input type="checkbox" id="c1"><span>I am 18 or older, or I have my parent or guardian's permission.</span></label><label class="ck"><input type="checkbox" id="c2"><span>I agree to the <a class="g" href="/content-standards" target="_blank">Content Standards</a> and <a class="g" href="/clipper-guidelines" target="_blank">Clipper Guidelines</a>.</span></label><button class="btn" id="go" style="width:100%;margin-top:8px">Continue</button><div id="er" class="mu" style="margin-top:8px"></div></div>`;
+  document.body.appendChild(d);
+  $('#go').onclick=async()=>{if(!$('#c1').checked||!$('#c2').checked)return $('#er').textContent='Please tick both boxes.';try{await api('/api/onboard','POST',{age:true,terms:true});d.remove();await boot()}catch(e){$('#er').textContent=e}};
 }
-
-addEventListener('hashchange',()=>{if(S&&S.user){$('#mn')&&($('#mn').hidden=true);draw()}});
+addEventListener('click',()=>{const x=$('#mn');if(x)x.hidden=true});
+addEventListener('hashchange',()=>{if(S&&S.user)draw()});
 boot();
 </script>
 </body>
