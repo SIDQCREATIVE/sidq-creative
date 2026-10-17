@@ -29,3 +29,9 @@ DATABASE_URL=postgres://user:pass@localhost:5432/sidq ADMIN_PASSWORD=test npm st
 2. Add this redirect: `https://YOUR-DOMAIN/auth/discord/callback` (use your real Railway or custom domain, exactly).
 3. In Railway Variables add: `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, and `OWNER_DISCORD_ID` (your own Discord user ID: you become the owner when you first log in).
 4. Optional: `SESSION_SECRET` (a long random text). Clippers log in at `/clipper`.
+
+## Google login
+1. console.cloud.google.com > create a project > Google Auth Platform: fill Branding, set Audience to External, then click Publish app (testing mode only allows listed test users).
+2. Clients > Create client > Web application. Add the redirect `https://YOUR-DOMAIN/auth/google/callback`.
+3. In Railway Variables add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `OWNER_EMAIL` (your Google email: you become the owner on first login).
+4. Open `/auth/google/setup` on your site to copy the exact redirect address. Discord login is optional and appears only when its variables are set.

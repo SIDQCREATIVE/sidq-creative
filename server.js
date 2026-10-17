@@ -457,13 +457,40 @@ app.get('/auth/discord/callback', wrap(async (q, r) => {
   const role = d.id === process.env.OWNER_DISCORD_ID ? 'owner' : 'clipper';
   const u = (await db.query(`INSERT INTO users (discord_id, username, avatar, email, role) VALUES ($1,$2,$3,$4,$5)
     ON CONFLICT (discord_id) DO UPDATE SET username = $2, avatar = $3, email = $4, last_login = now(), role = CASE WHEN $5 = 'owner' THEN 'owner' ELSE users.role END RETURNING id`,
-    [d.id, clip(d.global_name || d.username, 40), d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.png?size=128` : '', clip(d.email, 120), role])).rows[0];
+    [d.id, cleanName(d.global_name || d.username), d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.png?size=128` : '', clip(d.email, 120), role])).rows[0];
   const e = Date.now() + 30 * 864e5;
   setCk(q, r, 'sid', `${u.id}.${e}.${sidMac(u.id + '.' + e)}`, 30 * 86400); setCk(q, r, 'st', '', 0);
   r.redirect('/clipper');
 }));
 app.get('/auth/discord/setup', (q, r) => r.type('html').send(page(q, { title: 'Discord login setup', desc: 'Discord login setup', path: '/auth/discord/setup', type: 'website',
   body: `<h1>Discord login setup</h1><p>Copy this exact address into the Discord Developer Portal: your application, OAuth2, Redirects. Then click <b>Save Changes</b>.</p><pre style="background:#111;padding:14px;border-radius:10px;overflow:auto">${esc(redirectUri(q))}</pre><p>It must match letter for letter: https, the domain and the path, with no space and no slash at the end.</p>` })));
+const cleanName = n => clip(String(n || '').normalize('NFKC').replace(/[\u200B-\u200F\u2000-\u200A\u2060\uFEFF]/g, '').replace(/\s+/g, ' ').trim() || 'Clipper', 40);
+const GID = process.env.GOOGLE_CLIENT_ID, GSEC = process.env.GOOGLE_CLIENT_SECRET;
+const googleUri = q => process.env.GOOGLE_REDIRECT_URI || site(q) + '/auth/google/callback';
+app.get('/api/auth-config', (q, r) => r.json({ google: !!(GID && GSEC), discord: !!(DID && DSEC) }));
+app.get('/auth/google', (q, r) => {
+  if (!GID || !GSEC) return r.status(503).send('Google login is not set up yet. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Railway Variables.');
+  const st = crypto.randomBytes(16).toString('hex'); setCk(q, r, 'st', st, 600);
+  r.redirect('https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({ client_id: GID, redirect_uri: googleUri(q), response_type: 'code', scope: 'openid email profile', state: st, prompt: 'select_account' }));
+});
+app.get('/auth/google/callback', wrap(async (q, r) => {
+  const bad = () => r.status(400).send('Login failed. Please go back and try again.');
+  if (!GID || !GSEC || !q.query.code || q.query.state !== ck(q).st) return bad();
+  const t = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ code: String(q.query.code), client_id: GID, client_secret: GSEC, redirect_uri: googleUri(q), grant_type: 'authorization_code' }) }).then(x => x.json());
+  if (!t.access_token) { console.error('Google token error:', JSON.stringify(t), 'redirect_uri used:', googleUri(q)); return bad(); }
+  const d = await fetch('https://openidconnect.googleapis.com/v1/userinfo', { headers: { Authorization: 'Bearer ' + t.access_token } }).then(x => x.json());
+  if (!d.sub || d.email_verified === false) return bad();
+  const role = process.env.OWNER_EMAIL && String(d.email || '').toLowerCase() === process.env.OWNER_EMAIL.toLowerCase() ? 'owner' : 'clipper';
+  const u = (await db.query(`INSERT INTO users (google_sub, username, avatar, email, role) VALUES ($1,$2,$3,$4,$5)
+    ON CONFLICT (google_sub) DO UPDATE SET username = $2, avatar = $3, email = $4, last_login = now(), role = CASE WHEN $5 = 'owner' THEN 'owner' ELSE users.role END RETURNING id`,
+    [d.sub, cleanName(d.name || String(d.email || '').split('@')[0]), clip(d.picture, 300), clip(d.email, 120), role])).rows[0];
+  const e = Date.now() + 30 * 864e5;
+  setCk(q, r, 'sid', `${u.id}.${e}.${sidMac(u.id + '.' + e)}`, 30 * 86400); setCk(q, r, 'st', '', 0);
+  r.redirect('/clipper');
+}));
+app.get('/auth/google/setup', (q, r) => r.type('html').send(page(q, { title: 'Google login setup', desc: 'Google login setup', path: '/auth/google/setup', type: 'website',
+  body: `<h1>Google login setup</h1><p>Copy this exact address into Google Cloud: Google Auth Platform, Clients, your web client, Authorized redirect URIs. Then save.</p><pre style="background:#111;padding:14px;border-radius:10px;overflow:auto">${esc(googleUri(q))}</pre><p>It must match letter for letter: https, the domain and the path, with no space and no slash at the end.</p>` })));
 app.get('/auth/logout', (q, r) => { setCk(q, r, 'sid', '', 0); r.redirect('/clipper'); });
 
 app.get('/api/me', wrap(async (q, r) => {
@@ -523,6 +550,8 @@ app.post('/api/campaigns/:id/join', needUser, wrap(async (q, r) => {
   r.json({ ok: true });
 }));
 
+app.get('/api/users', needUser, wrap(async (q, r) => r.json((await db.query('SELECT u.id, u.username, u.avatar, u.xp, (SELECT count(*)::int FROM accounts a WHERE a.user_id = u.id) AS accounts FROM users u WHERE NOT u.banned ORDER BY u.xp DESC, u.id LIMIT 100')).rows
+  .map(x => ({ ...x, rank: RANKS[RANKS.reduce((a, y, k) => x.xp >= y[1] ? k : a, 0)][0] })))));
 app.get('/api/seo', auth, (q, r) => r.json({ SEO, pages: [['/', 'Home page', (home.match(/<title>(.*?)<\/title>/) || [])[1] || '', (home.match(/name="description" content="([^"]*)/) || [])[1] || ''], ...LAND.map(x => [x[0], x[1], x[1] + ' | SIDQ Creative', x[2]])] }));
 app.put('/api/seo', auth, wrap(async (q, r) => {
   const clean = {};
@@ -846,6 +875,8 @@ async function seed3() {
       min_followers INT NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'draft', created_at TIMESTAMPTZ NOT NULL DEFAULT now());
     CREATE TABLE IF NOT EXISTS campaign_members (campaign_id INT NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
       user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE, joined_at TIMESTAMPTZ NOT NULL DEFAULT now(), PRIMARY KEY (campaign_id, user_id));
+    ALTER TABLE users ALTER COLUMN discord_id DROP NOT NULL;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub TEXT UNIQUE;
     CREATE TABLE IF NOT EXISTS posts (id SERIAL PRIMARY KEY, slug TEXT UNIQUE NOT NULL, title TEXT NOT NULL,
       descr TEXT, body TEXT NOT NULL, at TIMESTAMPTZ NOT NULL DEFAULT now());`);
   await seed();
