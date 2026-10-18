@@ -5,19 +5,40 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
 <title>SIDQ Creative admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-body{background:#0a0a0a;color:#fff;font:15px/1.5 system-ui,sans-serif;max-width:780px;margin:auto;padding:24px}
-input,textarea{width:100%;background:#151515;border:1px solid #333;color:#fff;padding:10px;border-radius:8px;margin:4px 0 14px;font:inherit}
-label{display:block;color:#aaa;font-size:13px}
-h2{margin:32px 0 8px}
-button{background:#b7e222;border:0;border-radius:99px;padding:12px 26px;font:700 15px system-ui,sans-serif;cursor:pointer}
-.r{display:grid;grid-template-columns:1fr 2fr;gap:10px}
-table{width:100%;font-size:13px;border-collapse:collapse}
-td{border-top:1px solid #222;padding:8px 6px;vertical-align:top;word-break:break-word}
-#msg{color:#b7e222;margin-left:12px}#le{color:#f87171;margin-left:12px}
-.bar{position:sticky;bottom:0;background:#0a0a0af0;padding:14px 0}
-.tabs2{display:flex;gap:8px;margin:8px 0 12px}.tabs2 button{background:#151515;color:#fff;border:1px solid #333}.tabs2 button.on{background:#b7e222;color:#000}.tabs2 b{background:#f87171;color:#000;border-radius:99px;padding:0 8px;margin-left:6px}.tabs2 b:empty{display:none}
-.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+:root{--bg:#0a0b0d;--s1:#111317;--s2:#171a20;--bd:#1f232b;--tx:#f3f4f6;--mu:#8b93a1;--g:#b7e222}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{background:var(--bg);color:var(--tx);font:15px/1.55 Outfit,system-ui,sans-serif;max-width:1320px;margin:0 auto;padding:28px;-webkit-font-smoothing:antialiased}
+h1{font-size:22px;font-weight:800;display:flex;align-items:center;gap:10px;margin:0 0 22px}h1::before{content:"";width:32px;height:32px;background:url(/logo-mark.png) center/contain no-repeat}
+h2{font-size:24px;font-weight:800;margin:0 0 14px;letter-spacing:-.02em}h3{margin:18px 0 6px}small{color:var(--mu)}a{color:var(--g)}
+#lg{max-width:420px;margin:10vh auto;background:var(--s1);border:1px solid var(--bd);border-radius:18px;padding:28px}
+#ed{display:grid;grid-template-columns:230px minmax(0,1fr);gap:0 32px;align-items:start}
+.tabs2{grid-column:1;grid-row:1/span 99;display:flex;flex-direction:column;gap:4px;position:sticky;top:20px}
+#ed>*:not(.tabs2){grid-column:2}
+.tabs2 button{display:flex;align-items:center;gap:12px;background:none;color:#aab1bd;text-align:left;padding:11px 14px;border-radius:12px;font:600 15px Outfit,system-ui,sans-serif;border:0;cursor:pointer}
+.tabs2 button:hover{background:var(--s2);color:#fff}.tabs2 button.on{background:#b7e2221f;color:var(--g)}
+.tabs2 button::before{content:"";width:18px;height:18px;background:currentColor;-webkit-mask:var(--i) center/contain no-repeat;mask:var(--i) center/contain no-repeat}
+.tabs2 b{margin-left:auto;background:#ef4444;color:#fff;border-radius:99px;padding:0 8px;font-size:12px}
+.tabs2 [data-k=home]{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z'/%3E%3C/svg%3E")}
+.tabs2 [data-k=customer]{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M21 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8'/%3E%3C/svg%3E")}
+.tabs2 [data-k=clipper]{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M23 7l-7 5 7 5zM1 5h15v14H1z'/%3E%3C/svg%3E")}
+.tabs2 [data-k=content]{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6'/%3E%3C/svg%3E")}
+.tabs2 [data-k=blog]{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z'/%3E%3C/svg%3E")}
+.tabs2 [data-k=users]{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3C/svg%3E")}
+.tabs2 [data-k=campaigns]{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15l-3-3a22 22 0 0 1 2-4 12 12 0 0 1 9-5c0 4-2 8-5 11a22 22 0 0 1-4 2zM9 12H4s.5-3 2-4c1-.7 3-.5 3-.5M12 15v5s3-.5 4-2c.7-1 .5-3 .5-3M5 15c-1 1-2 4-2 6 2 0 5-1 6-2'/%3E%3C/svg%3E")}
+.tabs2 [data-k=seo]{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3'/%3E%3C/svg%3E")}
+[data-pg]{background:var(--s1);border:1px solid var(--bd);border-radius:18px;padding:26px;margin-bottom:16px}
+label{display:block;color:var(--mu);font-size:13px}
+input,textarea,select{width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);padding:11px 13px;border-radius:12px;margin:5px 0 14px;font:inherit}
+input:focus,textarea:focus,select:focus{outline:2px solid #b7e22266;border-color:#b7e22288}input[type=checkbox]{width:auto;margin:0 6px 0 0}
+button{background:var(--g);color:#0a0b0d;border:0;border-radius:12px;padding:11px 20px;font:700 14px Outfit,system-ui,sans-serif;cursor:pointer}button:hover{filter:brightness(1.07)}
+.r{display:grid;grid-template-columns:1fr 2fr;gap:12px}.r2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;border:1px solid var(--bd);border-radius:14px;overflow:hidden}
+td{padding:14px 16px;border-top:1px solid var(--bd);vertical-align:top;word-break:break-word}tr:first-child td{border-top:0}
+#msg,#smsg,#bm,#cm2{color:var(--g);margin-left:12px}#le{color:#f87171;margin-left:12px}
+.bar{position:sticky;bottom:0;background:#111317f2;padding:14px 0;margin-top:10px}
+@media(max-width:860px){body{padding:16px}#ed{grid-template-columns:1fr}.tabs2{grid-row:auto;flex-direction:row;flex-wrap:wrap;position:static}#ed>*:not(.tabs2){grid-column:1}.r,.r2{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -27,13 +48,15 @@ td{border-top:1px solid #222;padding:8px 6px;vertical-align:top;word-break:break
   <label for="pw">Password</label>
   <input id="pw" type="password" autocomplete="current-password" required>
   <button>Log in</button><span id="le" role="alert"></span>
+  <p style="margin-top:18px;color:var(--mu)">Staff: <span id="sl"></span></p>
 </form>
 
 <div id="ed" hidden>
-  <div class="tabs2"><button data-k="home">Overview</button><button data-k="customer">Customers <b id="nc"></b></button><button data-k="clipper">Clippers <b id="nk"></b></button><button data-k="content">Content</button><button data-k="blog">Blog</button><button data-k="campaigns">Campaigns</button><button data-k="seo">SEO</button></div>
+  <div class="tabs2"><button data-k="home">Overview</button><button data-k="customer">Customers <b id="nc"></b></button><button data-k="clipper">Clippers <b id="nk"></b></button><button data-k="content">Content</button><button data-k="blog">Blog</button><button data-k="users">Users</button><button data-k="campaigns">Campaigns</button><button data-k="seo">SEO</button></div>
   <div data-pg="home"><h2>Overview</h2><div id="ov"></div></div>
   <div data-pg="content"><div id="f"></div>
   <div class="bar"><button id="sv">Save changes</button><span id="msg" role="status"></span></div></div>
+  <div data-pg="users"><h2>Users and staff</h2><p class="mu" style="color:var(--mu)">Approve connected accounts, set roles (clipper, reviewer, finance, support, owner) and ban users.</p><div id="ul"></div></div>
   <div data-pg="campaigns"><h2>Launch a campaign</h2>
   <label>Title<input id="ct"></label>
   <div class="r2"><label>Label (example: Content, Edits, Gaming)<input id="cl" placeholder="Content"></label><label>Image link (optional)<input id="ci"></label></div>
@@ -108,7 +131,7 @@ function go(k){tab=k;location.hash=k;
   document.querySelectorAll('.tabs2 button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
   $('#ph').textContent=k==='clipper'?'Clipper applications':'Customer applications';
   $('#ov').innerHTML=['customer','clipper'].map(t=>`<p><b>${LS.filter(l=>l.type===t).length}</b> ${t} applications, <b>${LS.filter(l=>l.type===t&&!l.seen).length}</b> new</p>`).join('');
-  if(k==='customer'||k==='clipper')showLeads();else badge();if(k==='seo')seoLoad();if(k==='campaigns')campLoad()}
+  if(k==='customer'||k==='clipper')showLeads();else badge();if(k==='seo')seoLoad();if(k==='campaigns')campLoad();if(k==='users')usersLoad()}
 $('#ls').onclick=async e=>{const id=e.target.dataset.dl;if(id&&confirm('Delete this application?')){await api('/api/leads/'+id,'DELETE');LS=LS.filter(l=>l.id!=id);showLeads()}};
 setInterval(async()=>{if(!tok||$('#ed').hidden)return;try{LS=await api('/api/leads');go(tab)}catch{}},30000);
 async function seoLoad(){const j=await api('/api/seo');SEO=j.SEO;window.SP=j.pages;
@@ -121,11 +144,16 @@ $('#cs').onclick=async()=>{try{await api('/api/admin/campaigns','POST',{title:$(
   $('#cm2').textContent='Campaign created.';['ct','cd','cu'].forEach(i=>$('#'+i).value='');campLoad()}catch(e){$('#cm2').textContent=e}};
 $('#cl2').onclick=async e=>{const s=e.target.dataset.cs,d=e.target.dataset.cd;try{
   if(s){const[i,st]=s.split(':');await api('/api/admin/campaigns/'+i,'PUT',{status:st})}else if(d&&confirm('Delete this campaign?'))await api('/api/admin/campaigns/'+d,'DELETE');else return;campLoad()}catch(x){alert(x)}};
+async function usersLoad(){const l=await api('/api/admin/users');
+  $('#ul').innerHTML=l.length?`<table>${l.map(u=>`<tr><td><b>${esc(u.username)}</b><br><small>${esc(u.email||'')}</small></td><td><select data-ur="${u.id}" style="margin:0">${['clipper','reviewer','finance','support','owner'].map(r=>`<option${u.role===r?' selected':''}>${r}</option>`).join('')}</select></td><td>${u.accounts.length?u.accounts.map(x=>`<div style="margin:3px 0">${esc(x.platform)} @${esc(x.handle)} <small>(${esc(x.status)})</small> <button data-ac="${x.id}:approved" style="padding:3px 10px">Approve</button> <button data-ac="${x.id}:rejected" style="padding:3px 10px;background:#7f1d1d;color:#fff">Reject</button></div>`).join(''):'<small>No accounts</small>'}</td><td><button data-ub="${u.id}:${!u.banned}" style="padding:5px 12px;${u.banned?'':'background:#2a2d34;color:#fff'}">${u.banned?'Unban':'Ban'}</button></td></tr>`).join('')}</table>`:'<p>No users yet.</p>'}
+$('#ul').onchange=async e=>{if(e.target.dataset.ur){try{await api('/api/admin/users/'+e.target.dataset.ur,'PUT',{role:e.target.value})}catch(x){alert(x);usersLoad()}}};
+$('#ul').onclick=async e=>{const c=e.target.dataset.ac,b=e.target.dataset.ub;try{if(c){const[i,s]=c.split(':');await api('/api/admin/accounts/'+i,'PUT',{status:s})}else if(b){const[i,v]=b.split(':');await api('/api/admin/users/'+i,'PUT',{banned:v==='true'})}else return;usersLoad()}catch(x){alert(x)}};
+fetch('/api/auth-config').then(r=>r.json()).then(c=>{$('#sl').innerHTML=(c.google?'<a href="/auth/google?next=/admin">Google</a> ':'')+(c.discord?'<a href="/auth/discord?next=/admin">Discord</a>':'')||'not set up yet'}).catch(()=>{});
 async function posts(){const p=await api('/api/posts');$('#bl').innerHTML=p.map(x=>`<p><a style="color:#b7e222" href="/blog/${esc(x.slug)}" target="_blank">${esc(x.title)}</a> <button data-del="${x.id}" style="padding:4px 12px;background:#7f1d1d;color:#fff">Delete</button></p>`).join('')}
 $('#bp').onclick=async()=>{try{const r=await api('/api/posts','POST',{title:$('#bt').value,descr:$('#bd').value,body:$('#bb').value});$('#bm').textContent='Published: /blog/'+r.slug;['bt','bd','bb'].forEach(i=>$('#'+i).value='');posts()}catch(e){$('#bm').textContent=e}};
 $('#bl').onclick=async e=>{const id=e.target.dataset.del;if(id&&confirm('Delete this post?')){await api('/api/posts/'+id,'DELETE');posts()}};
 
-if(tok)load();
+load();
 </script>
 </body>
 </html>

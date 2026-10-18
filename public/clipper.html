@@ -131,7 +131,7 @@ function draw(){
   $('#root').innerHTML=`<div class="app"><aside><a class="br" href="#home"><img src="/logo-mark.png" alt="">SIDQ Creative</a><small>MENU</small>${NAV.map(([k,t,i])=>`<a class="nv ${h===k||(h==='campaign'&&k==='campaigns')?'on':''}" href="#${k}">${I(i)}<span>${t}</span></a>`).join('')}<small>SUPPORT</small><a class="nv" href="https://wa.me/447362449938" target="_blank" rel="noopener">${I('help')}<span>Live Support</span></a>
   <div class="me">${av(u,38)}<div><b>${esc(nm(u))}</b><small>${esc(u.rank)}</small></div></div></aside>
   <div><div class="top"><h1>${TITLES[h]||'Home'}</h1><div class="tr"><span class="pill">${I('wallet')}$0.00</span><button id="am" aria-label="Account menu">${av(u,38)}</button>
-  <div class="mn" id="mn" hidden><a href="#profile">${I('user')}My Profile</a><a href="#settings">${I('sliders')}Account Settings</a><a href="#accounts">${I('link')}Connected Accounts</a><a href="#mine">${I('grid')}My Campaigns</a><a href="/auth/logout" style="color:#ff8a8a">${I('out')}Sign out</a></div></div></div><main id="main"></main></div></div>`;
+  <div class="mn" id="mn" hidden><a href="#profile">${I('user')}My Profile</a><a href="#settings">${I('sliders')}Account Settings</a><a href="#accounts">${I('link')}Connected Accounts</a><a href="#mine">${I('grid')}My Campaigns</a>${['owner','reviewer','finance','support'].includes(u.role)?`<a href="/admin">${I('shield')}Admin panel</a>`:''}<a href="/auth/logout" style="color:#ff8a8a">${I('out')}Sign out</a></div></div></div><main id="main"></main></div></div>`;
   $('#am').onclick=e=>{e.stopPropagation();$('#mn').hidden=!$('#mn').hidden};
   (V[h]||V.home)(h0.split('/')[1]);
   if(!u.onboarded)onboard();
