@@ -40,7 +40,14 @@ const DEFAULT = {
 const mac = x => crypto.createHmac('sha256', SECRET).update(String(x)).digest('hex');
 const hash = s => crypto.createHash('sha256').update(String(s)).digest();
 const valid = t => { const [a, b] = String(t || '').split('.'); return +a > Date.now() && b === mac(a); };
-const auth = (q, r, n) => valid(q.get('x-token')) ? n() : r.status(401).json({ error: 'Log in again' });
+const staff = (...roles) => (q, r, n) => {  // admin password OR a logged-in staff account with one of these roles
+  if (valid(q.get('x-token'))) return n();
+  Promise.resolve(whoAmI(q)).then(u => {
+    if (u && roles.includes(u.role)) { q.user = u; return n(); }
+    r.status(u ? 403 : 401).json({ error: u ? 'You do not have access to this' : 'Log in again' });
+  }).catch(e => { console.error(e); r.status(500).json({ error: 'Server error' }); });
+};
+const auth = staff('owner');
 const clip = (s, n) => String(s || '').slice(0, n);
 const wrap = f => (q, r, n) => Promise.resolve(f(q, r, n)).catch(e => { console.error(e); r.status(500).json({ error: 'Server error' }); });
 
@@ -443,7 +450,7 @@ const redirectUri = q => process.env.DISCORD_REDIRECT_URI || site(q) + '/auth/di
 app.get('/clipper', (q, r) => r.sendFile(path.join(__dirname, 'public', 'clipper.html')));
 app.get('/auth/discord', (q, r) => {
   if (!DID || !DSEC) return r.status(503).send('Discord login is not set up yet. Add DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET in Railway Variables.');
-  const st = crypto.randomBytes(16).toString('hex'); setCk(q, r, 'st', st, 600);
+  const st = crypto.randomBytes(16).toString('hex'); setCk(q, r, 'st', st, 600); if (q.query.next === '/admin') setCk(q, r, 'nx', '/admin', 600);
   r.redirect('https://discord.com/oauth2/authorize?' + new URLSearchParams({ client_id: DID, redirect_uri: redirectUri(q), response_type: 'code', scope: 'identify email', state: st }));
 });
 app.get('/auth/discord/callback', wrap(async (q, r) => {
@@ -460,7 +467,7 @@ app.get('/auth/discord/callback', wrap(async (q, r) => {
     [d.id, cleanName(d.global_name || d.username), d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.png?size=128` : '', clip(d.email, 120), role])).rows[0];
   const e = Date.now() + 30 * 864e5;
   setCk(q, r, 'sid', `${u.id}.${e}.${sidMac(u.id + '.' + e)}`, 30 * 86400); setCk(q, r, 'st', '', 0);
-  r.redirect('/clipper');
+  r.redirect(ck(q).nx === '/admin' ? '/admin' : '/clipper');
 }));
 app.get('/auth/discord/setup', (q, r) => r.type('html').send(page(q, { title: 'Discord login setup', desc: 'Discord login setup', path: '/auth/discord/setup', type: 'website',
   body: `<h1>Discord login setup</h1><p>Copy this exact address into the Discord Developer Portal: your application, OAuth2, Redirects. Then click <b>Save Changes</b>.</p><pre style="background:#111;padding:14px;border-radius:10px;overflow:auto">${esc(redirectUri(q))}</pre><p>It must match letter for letter: https, the domain and the path, with no space and no slash at the end.</p>` })));
@@ -470,7 +477,7 @@ const googleUri = q => process.env.GOOGLE_REDIRECT_URI || site(q) + '/auth/googl
 app.get('/api/auth-config', (q, r) => r.json({ google: !!(GID && GSEC), discord: !!(DID && DSEC) }));
 app.get('/auth/google', (q, r) => {
   if (!GID || !GSEC) return r.status(503).send('Google login is not set up yet. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Railway Variables.');
-  const st = crypto.randomBytes(16).toString('hex'); setCk(q, r, 'st', st, 600);
+  const st = crypto.randomBytes(16).toString('hex'); setCk(q, r, 'st', st, 600); if (q.query.next === '/admin') setCk(q, r, 'nx', '/admin', 600);
   r.redirect('https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({ client_id: GID, redirect_uri: googleUri(q), response_type: 'code', scope: 'openid email profile', state: st, prompt: 'select_account' }));
 });
 app.get('/auth/google/callback', wrap(async (q, r) => {
@@ -487,7 +494,7 @@ app.get('/auth/google/callback', wrap(async (q, r) => {
     [d.sub, cleanName(d.name || String(d.email || '').split('@')[0]), clip(d.picture, 300), clip(d.email, 120), role])).rows[0];
   const e = Date.now() + 30 * 864e5;
   setCk(q, r, 'sid', `${u.id}.${e}.${sidMac(u.id + '.' + e)}`, 30 * 86400); setCk(q, r, 'st', '', 0);
-  r.redirect('/clipper');
+  r.redirect(ck(q).nx === '/admin' ? '/admin' : '/clipper');
 }));
 app.get('/auth/google/setup', (q, r) => r.type('html').send(page(q, { title: 'Google login setup', desc: 'Google login setup', path: '/auth/google/setup', type: 'website',
   body: `<h1>Google login setup</h1><p>Copy this exact address into Google Cloud: Google Auth Platform, Clients, your web client, Authorized redirect URIs. Then save.</p><pre style="background:#111;padding:14px;border-radius:10px;overflow:auto">${esc(googleUri(q))}</pre><p>It must match letter for letter: https, the domain and the path, with no space and no slash at the end.</p>` })));
@@ -552,6 +559,22 @@ app.post('/api/campaigns/:id/join', needUser, wrap(async (q, r) => {
 
 app.get('/api/users', needUser, wrap(async (q, r) => r.json((await db.query('SELECT u.id, u.username, u.avatar, u.xp, (SELECT count(*)::int FROM accounts a WHERE a.user_id = u.id) AS accounts FROM users u WHERE NOT u.banned ORDER BY u.xp DESC, u.id LIMIT 100')).rows
   .map(x => ({ ...x, rank: RANKS[RANKS.reduce((a, y, k) => x.xp >= y[1] ? k : a, 0)][0] })))));
+app.get('/api/admin/users', auth, wrap(async (q, r) => {
+  const us = (await db.query('SELECT id, username, email, role, xp, banned, created_at FROM users ORDER BY id DESC LIMIT 500')).rows;
+  const ac = (await db.query('SELECT id, user_id, platform, handle, status FROM accounts ORDER BY id')).rows;
+  r.json(us.map(u => ({ ...u, accounts: ac.filter(a => a.user_id === u.id) })));
+}));
+app.put('/api/admin/users/:id', auth, wrap(async (q, r) => {
+  const id = +q.params.id || 0;
+  if (['clipper', 'reviewer', 'finance', 'support', 'owner'].includes(q.body.role)) await db.query('UPDATE users SET role = $1 WHERE id = $2', [q.body.role, id]);
+  if (typeof q.body.banned === 'boolean') await db.query('UPDATE users SET banned = $1 WHERE id = $2', [q.body.banned, id]);
+  r.json({ ok: true });
+}));
+app.put('/api/admin/accounts/:id', staff('owner', 'reviewer'), wrap(async (q, r) => {
+  if (new Date().toLocaleDateString('en-US', { weekday: 'long', timeZone: 'Asia/Karachi' }) === 'Sunday') return r.status(403).json({ error: 'Sunday holiday: reviews are closed today' });
+  await db.query('UPDATE accounts SET status = $1 WHERE id = $2', [['approved', 'pending', 'rejected'].includes(q.body.status) ? q.body.status : 'pending', +q.params.id || 0]);
+  r.json({ ok: true });
+}));
 app.get('/api/seo', auth, (q, r) => r.json({ SEO, pages: [['/', 'Home page', (home.match(/<title>(.*?)<\/title>/) || [])[1] || '', (home.match(/name="description" content="([^"]*)/) || [])[1] || ''], ...LAND.map(x => [x[0], x[1], x[1] + ' | SIDQ Creative', x[2]])] }));
 app.put('/api/seo', auth, wrap(async (q, r) => {
   const clean = {};
