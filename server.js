@@ -1,5 +1,6 @@
 const express = require('express'), compression = require('compression'), fs = require('fs'), path = require('path'), crypto = require('crypto');
 const { Pool } = require('pg');
+const makeCore = require('./lib/core'), makeGate = require('./lib/roles'), migrate = require('./lib/schema'), makeJobs = require('./lib/jobs'), mountAssets = require('./lib/assets'), P = require('./lib/platforms'), makeConnect = require('./lib/connect');
 const app = express();
 app.set('trust proxy', 1);
 if (process.env.SITE_URL) {  // send www to the main address
@@ -13,7 +14,8 @@ if (!process.env.DATABASE_URL) {
   console.error('DATABASE_URL is missing. In Railway, add a PostgreSQL database and link DATABASE_URL to this service.');
   process.exit(1);
 }
-const db = new Pool({ connectionString: process.env.DATABASE_URL, max: 5 });
+const db = new Pool({ connectionString: process.env.DATABASE_URL, max: 8 });
+db.on('error', e => console.error('Database connection problem (it will reconnect):', e.message)); // without this, one dropped connection would crash the server
 const PASS = process.env.ADMIN_PASSWORD || '', SECRET = process.env.SECRET || PASS;
 
 const DEFAULT = {
@@ -39,21 +41,27 @@ const DEFAULT = {
 
 const mac = x => crypto.createHmac('sha256', SECRET).update(String(x)).digest('hex');
 const hash = s => crypto.createHash('sha256').update(String(s)).digest();
-const valid = t => { const [a, b] = String(t || '').split('.'); return +a > Date.now() && b === mac(a); };
-const staff = (...roles) => (q, r, n) => {  // admin password OR a logged-in staff account with one of these roles
-  if (valid(q.get('x-token'))) return n();
-  Promise.resolve(whoAmI(q)).then(u => {
-    if (u && roles.includes(u.role)) { q.user = u; return n(); }
-    r.status(u ? 403 : 401).json({ error: u ? 'You do not have access to this' : 'Log in again' });
-  }).catch(e => { console.error(e); r.status(500).json({ error: 'Server error' }); });
-};
-const auth = staff('owner');
+const same = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
+// An admin-password token. Never valid when no ADMIN_PASSWORD is set (the signing key would be empty and anyone could forge one).
+const valid = t => { if (!SECRET) return false; const [a, b] = String(t || '').split('.'); return +a > Date.now() && !!b && same(b, mac(a)); };
+const core = makeCore(db);
+const { actorOf, gate } = makeGate(q => whoAmI(q), t => valid(t));
+const auth = gate('website'); // content, blog, SEO and applications: owner and admin (or the admin password)
 const clip = (s, n) => String(s || '').slice(0, n);
 const wrap = f => (q, r, n) => Promise.resolve(f(q, r, n)).catch(e => { console.error(e); r.status(500).json({ error: 'Server error' }); });
 
 let tries = 0, leadHits = 0;
 setInterval(() => { tries = 0; leadHits = 0; }, 60000);
 app.use(express.json({ limit: '1mb' }));
+app.use('/api', (q, r, n) => {
+  r.set('Cache-Control', 'no-store');
+  // Browsers tell us which site a request came from. Changing data from another site is never allowed.
+  if (q.method !== 'GET' && q.method !== 'HEAD') {
+    const o = q.get('origin');
+    if (o) { let ok = false; try { ok = new URL(o).host === q.get('host'); } catch (e) { /* not a valid origin */ } if (!ok) return r.status(403).json({ error: 'This request came from another website and was blocked.' }); }
+  }
+  n();
+});
 
 app.get('/api/content', wrap(async (q, r) => {
   const { rows } = await db.query('SELECT data FROM content WHERE id = 1');
@@ -432,149 +440,77 @@ const TOOLS = [
 ];
 TOOLS.forEach(([p, t, d, h]) => app.get(p, (q, r) => r.type('html').send(page(q, { title: t + ' | SIDQ Creative', desc: d, path: p, type: 'website', crumbs: [['Home', '/'], [t, p]], body: h }))));
 app.get('/.well-known/security.txt', (q, r) => r.type('text').send('Contact: https://wa.me/447362449938\nExpires: 2027-12-31T00:00:00.000Z\nPreferred-Languages: en\n'));
-// ---------- clipper portal: Discord login, profile, connected accounts ----------
+// ---------- clipper portal: Discord login and sessions ----------
+// The clipper portal (/clipper) and the staff panel (/staff, /admin) live in routes/clipper.js, routes/staff.js and public/portal/.
 const SS = process.env.SESSION_SECRET || process.env.DISCORD_CLIENT_SECRET || SECRET;
 const DID = process.env.DISCORD_CLIENT_ID, DSEC = process.env.DISCORD_CLIENT_SECRET;
-const ck = q => Object.fromEntries((q.get('cookie') || '').split(';').map(c => c.trim().split('=')).filter(a => a[0]).map(([k, ...v]) => [k, decodeURIComponent(v.join('='))]));
+const ck = q => Object.fromEntries((q.get('cookie') || '').split(';').map(c => c.trim().split('=')).filter(a => a[0]).map(([k, ...v]) => { try { return [k, decodeURIComponent(v.join('='))]; } catch (e) { return [k, '']; } }));
 const setCk = (q, r, n, v, age) => r.append('Set-Cookie', `${n}=${encodeURIComponent(v)}; Path=/; HttpOnly; SameSite=Lax; ${q.secure ? 'Secure; ' : ''}Max-Age=${age}`);
 const sidMac = x => crypto.createHmac('sha256', SS).update(x).digest('hex');
-const whoAmI = async q => {
+// The logged-in clipper's id from the signed cookie (no database lookup), or null.
+const sessionUserId = q => {
   const [id, e, m] = (ck(q).sid || '').split('.');
-  if (!SS || !id || !(+e > Date.now()) || m !== sidMac(id + '.' + e)) return null;
-  return (await db.query('SELECT * FROM users WHERE id = $1 AND NOT banned', [+id])).rows[0] || null;
+  return (SS && /^\d{1,9}$/.test(id || '') && +e > Date.now() && m && same(m, sidMac(id + '.' + e))) ? +id : null;
+};
+const seenAt = new Map();
+const whoAmI = async q => {
+  const id = sessionUserId(q); if (!id) return null;
+  const u = (await db.query('SELECT * FROM users WHERE id = $1 AND NOT banned', [id])).rows[0] || null;
+  if (u && !(Date.now() - (seenAt.get(id) || 0) < 300000)) { seenAt.set(id, Date.now()); db.query('UPDATE users SET last_seen = now() WHERE id = $1', [id]).catch(() => {}); }
+  return u;
 };
 const needUser = wrap(async (q, r, n) => { const u = await whoAmI(q); if (!u) return r.status(401).json({ error: 'Please log in first' }); q.user = u; n(); });
-const RANKS = [['Noob', 0], ['Rookie', 1200], ['Clipper', 5000], ['Pro', 20000], ['Elite', 100000]];
 const redirectUri = q => process.env.DISCORD_REDIRECT_URI || site(q) + '/auth/discord/callback';
 
-app.get('/clipper', (q, r) => r.sendFile(path.join(__dirname, 'public', 'clipper.html')));
+const assets = mountAssets(app, __dirname);
+app.get('/clipper', assets.page('clipper.html'));
+app.get('/staff', assets.page('staff.html'));
+app.get('/admin', assets.page('staff.html'));
+
 app.get('/auth/discord', (q, r) => {
   if (!DID || !DSEC) return r.status(503).send('Discord login is not set up yet. Add DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET in Railway Variables.');
-  const st = crypto.randomBytes(16).toString('hex'); setCk(q, r, 'st', st, 600); if (q.query.next === '/admin') setCk(q, r, 'nx', '/admin', 600);
+  const st = crypto.randomBytes(16).toString('hex'); setCk(q, r, 'st', st, 600); setCk(q, r, 'nx', q.query.next === 'staff' ? 'staff' : 'clipper', 600);
   r.redirect('https://discord.com/oauth2/authorize?' + new URLSearchParams({ client_id: DID, redirect_uri: redirectUri(q), response_type: 'code', scope: 'identify email', state: st }));
 });
 app.get('/auth/discord/callback', wrap(async (q, r) => {
   const bad = () => r.status(400).send('Login failed. Please go back and try again.');
-  if (!DID || !DSEC || !q.query.code || q.query.state !== ck(q).st) return bad();
+  if (!DID || !DSEC || !q.query.code || !ck(q).st || q.query.state !== ck(q).st) return bad();
   const t = await fetch('https://discord.com/api/oauth2/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ client_id: DID, client_secret: DSEC, grant_type: 'authorization_code', code: String(q.query.code), redirect_uri: redirectUri(q) }) }).then(x => x.json());
   if (!t.access_token) { console.error('Discord token error:', JSON.stringify(t), 'redirect_uri used:', redirectUri(q)); return bad(); }
   const d = await fetch('https://discord.com/api/users/@me', { headers: { Authorization: 'Bearer ' + t.access_token } }).then(x => x.json());
   if (!d.id) return bad();
   const role = d.id === process.env.OWNER_DISCORD_ID ? 'owner' : 'clipper';
+  const existed = (await db.query('SELECT 1 FROM users WHERE discord_id = $1', [d.id])).rowCount > 0;
   const u = (await db.query(`INSERT INTO users (discord_id, username, avatar, email, role) VALUES ($1,$2,$3,$4,$5)
-    ON CONFLICT (discord_id) DO UPDATE SET username = $2, avatar = $3, email = $4, last_login = now(), role = CASE WHEN $5 = 'owner' THEN 'owner' ELSE users.role END RETURNING id`,
-    [d.id, cleanName(d.global_name || d.username), d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.png?size=128` : '', clip(d.email, 120), role])).rows[0];
+    ON CONFLICT (discord_id) DO UPDATE SET username = $2, avatar = $3, email = $4, last_login = now(), last_seen = now(), role = CASE WHEN $5 = 'owner' THEN 'owner' ELSE users.role END RETURNING id`,
+    [d.id, clip(d.global_name || d.username, 40), d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.png?size=128` : '', clip(d.email, 120), role])).rows[0];
+  const ref = ck(q).ref;
+  if (!existed && /^[A-Z2-9]{4,12}$/.test(ref || '')) // a referral link only counts for people who are new
+    await db.query('UPDATE users SET referred_by = (SELECT id FROM users WHERE ref_code = $2 AND id <> $1) WHERE id = $1 AND referred_by IS NULL', [u.id, ref]);
   const e = Date.now() + 30 * 864e5;
-  setCk(q, r, 'sid', `${u.id}.${e}.${sidMac(u.id + '.' + e)}`, 30 * 86400); setCk(q, r, 'st', '', 0);
-  r.redirect(ck(q).nx === '/admin' ? '/admin' : '/clipper');
+  setCk(q, r, 'sid', `${u.id}.${e}.${sidMac(u.id + '.' + e)}`, 30 * 86400); setCk(q, r, 'st', '', 0); setCk(q, r, 'ref', '', 0); setCk(q, r, 'nx', '', 0);
+  r.redirect(ck(q).nx === 'staff' ? '/staff' : '/clipper');
 }));
 app.get('/auth/discord/setup', (q, r) => r.type('html').send(page(q, { title: 'Discord login setup', desc: 'Discord login setup', path: '/auth/discord/setup', type: 'website',
   body: `<h1>Discord login setup</h1><p>Copy this exact address into the Discord Developer Portal: your application, OAuth2, Redirects. Then click <b>Save Changes</b>.</p><pre style="background:#111;padding:14px;border-radius:10px;overflow:auto">${esc(redirectUri(q))}</pre><p>It must match letter for letter: https, the domain and the path, with no space and no slash at the end.</p>` })));
-const cleanName = n => clip(String(n || '').normalize('NFKC').replace(/[\u200B-\u200F\u2000-\u200A\u2060\uFEFF]/g, '').replace(/\s+/g, ' ').trim() || 'Clipper', 40);
-const GID = process.env.GOOGLE_CLIENT_ID, GSEC = process.env.GOOGLE_CLIENT_SECRET;
-const googleUri = q => process.env.GOOGLE_REDIRECT_URI || site(q) + '/auth/google/callback';
-app.get('/api/auth-config', (q, r) => r.json({ google: !!(GID && GSEC), discord: !!(DID && DSEC) }));
-app.get('/auth/google', (q, r) => {
-  if (!GID || !GSEC) return r.status(503).send('Google login is not set up yet. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Railway Variables.');
-  const st = crypto.randomBytes(16).toString('hex'); setCk(q, r, 'st', st, 600); if (q.query.next === '/admin') setCk(q, r, 'nx', '/admin', 600);
-  r.redirect('https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({ client_id: GID, redirect_uri: googleUri(q), response_type: 'code', scope: 'openid email profile', state: st, prompt: 'select_account' }));
+app.get('/auth/logout', (q, r) => { setCk(q, r, 'sid', '', 0); r.redirect(q.query.next === 'staff' ? '/staff' : '/clipper'); });
+app.get('/r/:code', (q, r) => { const c = String(q.params.code || '').toUpperCase(); if (/^[A-Z2-9]{4,12}$/.test(c)) setCk(q, r, 'ref', c, 30 * 86400); r.redirect('/clipper'); });
+
+// The clipper API and the staff API. Both are plain route files that get the shared helpers below.
+const connect = makeConnect({ db, core });
+const jobs = makeJobs({ db, core, connect });
+const portal = { db, core, needUser, sessionUserId, actorOf, gate, ROLES: makeGate.ROLES, STAFF_ROLES: makeGate.STAFF_ROLES, jobs, connect, hasYoutubeKey: P.hasYoutubeKey, ck, setCk, sign: sidMac };
+require('./routes/clipper')(app, portal);
+require('./routes/connect')(app, portal);
+require('./routes/staff')(app, portal);
+// The three addresses to paste into the YouTube (Google), TikTok and Instagram developer apps.
+app.get('/connect/setup', (q, r) => {
+  const rows = [['YouTube (Google Cloud, OAuth client, Authorized redirect URIs)', 'youtube'], ['TikTok (developers.tiktok.com, Login Kit, Redirect URI)', 'tiktok'], ['Instagram (Meta developer app, Instagram API with Instagram login, Valid OAuth redirect URIs)', 'instagram']];
+  r.type('html').send(page(q, { title: 'Connect accounts setup', desc: 'Connect accounts setup', path: '/connect/setup', type: 'website',
+    body: `<h1>Connect accounts setup</h1><p>Copy each address exactly into the matching developer app, then save. It must match letter for letter: https, the domain and the path, with no space and no slash at the end.</p>${rows.map(([t, p]) => `<h2 style="font-size:18px;margin-top:22px">${esc(t)}</h2><pre style="background:#111;padding:14px;border-radius:10px;overflow:auto">${esc(connect.redirectUri(p, q))}</pre>`).join('')}<h2 style="font-size:18px;margin-top:22px">Instagram, extra addresses</h2><p>Deauthorize callback URL:</p><pre style="background:#111;padding:14px;border-radius:10px;overflow:auto">${esc(site(q) + '/connect/instagram/deauthorize')}</pre><p>Data deletion request URL:</p><pre style="background:#111;padding:14px;border-radius:10px;overflow:auto">${esc(site(q) + '/connect/instagram/delete')}</pre><p>The keys themselves go only in Railway Variables, never in a chat or a file.</p>` }));
 });
-app.get('/auth/google/callback', wrap(async (q, r) => {
-  const bad = () => r.status(400).send('Login failed. Please go back and try again.');
-  if (!GID || !GSEC || !q.query.code || q.query.state !== ck(q).st) return bad();
-  const t = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ code: String(q.query.code), client_id: GID, client_secret: GSEC, redirect_uri: googleUri(q), grant_type: 'authorization_code' }) }).then(x => x.json());
-  if (!t.access_token) { console.error('Google token error:', JSON.stringify(t), 'redirect_uri used:', googleUri(q)); return bad(); }
-  const d = await fetch('https://openidconnect.googleapis.com/v1/userinfo', { headers: { Authorization: 'Bearer ' + t.access_token } }).then(x => x.json());
-  if (!d.sub || d.email_verified === false) return bad();
-  const role = process.env.OWNER_EMAIL && String(d.email || '').toLowerCase() === process.env.OWNER_EMAIL.toLowerCase() ? 'owner' : 'clipper';
-  const u = (await db.query(`INSERT INTO users (google_sub, username, avatar, email, role) VALUES ($1,$2,$3,$4,$5)
-    ON CONFLICT (google_sub) DO UPDATE SET username = $2, avatar = $3, email = $4, last_login = now(), role = CASE WHEN $5 = 'owner' THEN 'owner' ELSE users.role END RETURNING id`,
-    [d.sub, cleanName(d.name || String(d.email || '').split('@')[0]), clip(d.picture, 300), clip(d.email, 120), role])).rows[0];
-  const e = Date.now() + 30 * 864e5;
-  setCk(q, r, 'sid', `${u.id}.${e}.${sidMac(u.id + '.' + e)}`, 30 * 86400); setCk(q, r, 'st', '', 0);
-  r.redirect(ck(q).nx === '/admin' ? '/admin' : '/clipper');
-}));
-app.get('/auth/google/setup', (q, r) => r.type('html').send(page(q, { title: 'Google login setup', desc: 'Google login setup', path: '/auth/google/setup', type: 'website',
-  body: `<h1>Google login setup</h1><p>Copy this exact address into Google Cloud: Google Auth Platform, Clients, your web client, Authorized redirect URIs. Then save.</p><pre style="background:#111;padding:14px;border-radius:10px;overflow:auto">${esc(googleUri(q))}</pre><p>It must match letter for letter: https, the domain and the path, with no space and no slash at the end.</p>` })));
-app.get('/auth/logout', (q, r) => { setCk(q, r, 'sid', '', 0); r.redirect('/clipper'); });
 
-app.get('/api/me', wrap(async (q, r) => {
-  const u = await whoAmI(q); if (!u) return r.json({ user: null });
-  const accounts = (await db.query('SELECT id, platform, handle, followers, status FROM accounts WHERE user_id = $1 ORDER BY id', [u.id])).rows;
-  const i = RANKS.reduce((a, x, k) => u.xp >= x[1] ? k : a, 0), nx = RANKS[i + 1];
-  const staffHoliday = new Date().toLocaleDateString('en-US', { weekday: 'long', timeZone: 'Asia/Karachi' }) === 'Sunday';
-  r.json({ user: { id: u.id, username: u.username, avatar: u.avatar, role: u.role, bio: u.bio, onboarded: !!u.agreed_at, xp: u.xp, rank: RANKS[i][0], next: nx ? nx[1] : null }, accounts, staffHoliday });
-}));
-app.post('/api/onboard', needUser, wrap(async (q, r) => {
-  if (!(q.body && q.body.age && q.body.terms)) return r.status(400).json({ error: 'Please tick both boxes' });
-  await db.query('UPDATE users SET agreed_at = now() WHERE id = $1', [q.user.id]); r.json({ ok: true });
-}));
-app.put('/api/profile', needUser, wrap(async (q, r) => { await db.query('UPDATE users SET bio = $1 WHERE id = $2', [clip(q.body.bio, 200), q.user.id]); r.json({ ok: true }); }));
-app.post('/api/accounts', needUser, wrap(async (q, r) => {
-  const platform = String(q.body.platform), handle = String(q.body.handle || '').replace(/^@/, '').trim();
-  if (!['youtube', 'tiktok', 'instagram'].includes(platform) || !/^[A-Za-z0-9._-]{2,40}$/.test(handle)) return r.status(400).json({ error: 'Check the platform and username' });
-  const n = (await db.query('SELECT count(*)::int AS c FROM accounts WHERE user_id = $1', [q.user.id])).rows[0].c;
-  if (n >= 10) return r.status(400).json({ error: 'You can connect up to 10 accounts' });
-  try { await db.query('INSERT INTO accounts (user_id, platform, handle) VALUES ($1,$2,$3)', [q.user.id, platform, handle]); }
-  catch (e) { return r.status(409).json({ error: 'This account is already connected' }); }
-  r.json({ ok: true });
-}));
-app.delete('/api/accounts/:id', needUser, wrap(async (q, r) => { await db.query('DELETE FROM accounts WHERE id = $1 AND user_id = $2', [+q.params.id || 0, q.user.id]); r.json({ ok: true }); }));
-
-// ---------- campaigns ----------
-const campOut = x => ({ id: x.id, title: x.title, label: x.label, image: x.image, rate: +x.rate, budget: +x.budget, min_views: x.min_views,
-  max_payout: x.max_payout == null ? null : +x.max_payout, platforms: x.platforms.split(','), submit_hours: x.submit_hours, min_followers: x.min_followers, status: x.status });
-app.get('/api/admin/campaigns', auth, wrap(async (q, r) => r.json((await db.query('SELECT c.*, (SELECT count(*)::int FROM campaign_members m WHERE m.campaign_id = c.id) AS members FROM campaigns c ORDER BY id DESC')).rows)));
-app.post('/api/admin/campaigns', auth, wrap(async (q, r) => {
-  if (new Date().toLocaleDateString('en-US', { weekday: 'long', timeZone: 'Asia/Karachi' }) === 'Sunday') return r.status(403).json({ error: 'Sunday holiday: new campaigns cannot be launched today' });
-  const b = q.body || {}, num = (v, d) => (v === '' || v == null || !Number.isFinite(+v)) ? d : +v;
-  if (!clip(b.title, 100).trim()) return r.status(400).json({ error: 'A title is needed' });
-  const pl = (Array.isArray(b.platforms) ? b.platforms : []).filter(x => ['youtube', 'tiktok', 'instagram'].includes(x)).join(',') || 'youtube,tiktok,instagram';
-  const id = (await db.query(`INSERT INTO campaigns (title, label, brief, rules, image, rate, budget, min_views, max_payout, platforms, submit_hours, min_followers, status)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id`, [clip(b.title, 100), clip(b.label, 30) || 'Content', clip(b.brief, 4000), clip(b.rules, 6000), clip(b.image, 300),
-    num(b.rate, 1), num(b.budget, 0), Math.round(num(b.min_views, 1000)), num(b.max_payout, null), pl, Math.round(num(b.submit_hours, 24)), Math.round(num(b.min_followers, 0)), b.live ? 'live' : 'draft'])).rows[0].id;
-  r.json({ ok: true, id });
-}));
-app.put('/api/admin/campaigns/:id', auth, wrap(async (q, r) => { await db.query('UPDATE campaigns SET status = $1 WHERE id = $2', [['draft', 'live', 'ended'].includes(q.body.status) ? q.body.status : 'draft', +q.params.id || 0]); r.json({ ok: true }); }));
-app.delete('/api/admin/campaigns/:id', auth, wrap(async (q, r) => { await db.query('DELETE FROM campaigns WHERE id = $1', [+q.params.id || 0]); r.json({ ok: true }); }));
-app.get('/api/campaigns', needUser, wrap(async (q, r) => {
-  const rows = (await db.query(`SELECT c.*, EXISTS (SELECT 1 FROM campaign_members m WHERE m.campaign_id = c.id AND m.user_id = $1) AS joined FROM campaigns c WHERE c.status IN ('live','ended') ORDER BY c.id DESC`, [q.user.id])).rows;
-  r.json(rows.map(x => ({ ...campOut(x), joined: x.joined })));
-}));
-app.get('/api/campaigns/:id', needUser, wrap(async (q, r) => {
-  const x = (await db.query(`SELECT c.*, EXISTS (SELECT 1 FROM campaign_members m WHERE m.campaign_id = c.id AND m.user_id = $2) AS joined FROM campaigns c WHERE c.id = $1 AND c.status IN ('live','ended')`, [+q.params.id || 0, q.user.id])).rows[0];
-  if (!x) return r.status(404).json({ error: 'Campaign not found' });
-  r.json({ ...campOut(x), brief: x.brief, joined: x.joined, rules: x.joined ? x.rules : null });
-}));
-app.post('/api/campaigns/:id/join', needUser, wrap(async (q, r) => {
-  if (!q.user.agreed_at) return r.status(400).json({ error: 'Please finish the start-up steps first' });
-  const x = (await db.query('SELECT status FROM campaigns WHERE id = $1', [+q.params.id || 0])).rows[0];
-  if (!x || x.status !== 'live') return r.status(400).json({ error: 'This campaign is not open' });
-  if (!(await db.query('SELECT 1 FROM accounts WHERE user_id = $1 LIMIT 1', [q.user.id])).rowCount) return r.status(400).json({ error: 'Connect at least one account first' });
-  await db.query('INSERT INTO campaign_members (campaign_id, user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING', [+q.params.id, q.user.id]);
-  r.json({ ok: true });
-}));
-
-app.get('/api/users', needUser, wrap(async (q, r) => r.json((await db.query('SELECT u.id, u.username, u.avatar, u.xp, (SELECT count(*)::int FROM accounts a WHERE a.user_id = u.id) AS accounts FROM users u WHERE NOT u.banned ORDER BY u.xp DESC, u.id LIMIT 100')).rows
-  .map(x => ({ ...x, rank: RANKS[RANKS.reduce((a, y, k) => x.xp >= y[1] ? k : a, 0)][0] })))));
-app.get('/api/admin/users', auth, wrap(async (q, r) => {
-  const us = (await db.query('SELECT id, username, email, role, xp, banned, created_at FROM users ORDER BY id DESC LIMIT 500')).rows;
-  const ac = (await db.query('SELECT id, user_id, platform, handle, status FROM accounts ORDER BY id')).rows;
-  r.json(us.map(u => ({ ...u, accounts: ac.filter(a => a.user_id === u.id) })));
-}));
-app.put('/api/admin/users/:id', auth, wrap(async (q, r) => {
-  const id = +q.params.id || 0;
-  if (['clipper', 'reviewer', 'finance', 'support', 'owner'].includes(q.body.role)) await db.query('UPDATE users SET role = $1 WHERE id = $2', [q.body.role, id]);
-  if (typeof q.body.banned === 'boolean') await db.query('UPDATE users SET banned = $1 WHERE id = $2', [q.body.banned, id]);
-  r.json({ ok: true });
-}));
-app.put('/api/admin/accounts/:id', staff('owner', 'reviewer'), wrap(async (q, r) => {
-  if (new Date().toLocaleDateString('en-US', { weekday: 'long', timeZone: 'Asia/Karachi' }) === 'Sunday') return r.status(403).json({ error: 'Sunday holiday: reviews are closed today' });
-  await db.query('UPDATE accounts SET status = $1 WHERE id = $2', [['approved', 'pending', 'rejected'].includes(q.body.status) ? q.body.status : 'pending', +q.params.id || 0]);
-  r.json({ ok: true });
-}));
 app.get('/api/seo', auth, (q, r) => r.json({ SEO, pages: [['/', 'Home page', (home.match(/<title>(.*?)<\/title>/) || [])[1] || '', (home.match(/name="description" content="([^"]*)/) || [])[1] || ''], ...LAND.map(x => [x[0], x[1], x[1] + ' | SIDQ Creative', x[2]])] }));
 app.put('/api/seo', auth, wrap(async (q, r) => {
   const clean = {};
@@ -583,7 +519,6 @@ app.put('/api/seo', auth, wrap(async (q, r) => {
   await db.query('INSERT INTO content (id, data) VALUES (4, $1::jsonb) ON CONFLICT (id) DO UPDATE SET data = $1::jsonb', [JSON.stringify(clean)]);
   r.json({ ok: true });
 }));
-app.get('/admin', (q, r) => r.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '7d', index: false }));
 app.use((q, r) => r.status(404).type('html').send(page(q, { title: 'Page not found | SIDQ Creative', desc: 'Page not found', path: '/', type: 'website', body: '<h1>Page not found</h1><p><a href="/">Back to the home page</a></p><p><a href="/blog">Blog</a> | <a href="/resources">Resources</a> | <a href="/#apply">Contact us</a></p>' })));
 
@@ -898,13 +833,12 @@ async function seed3() {
       min_followers INT NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'draft', created_at TIMESTAMPTZ NOT NULL DEFAULT now());
     CREATE TABLE IF NOT EXISTS campaign_members (campaign_id INT NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
       user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE, joined_at TIMESTAMPTZ NOT NULL DEFAULT now(), PRIMARY KEY (campaign_id, user_id));
-    ALTER TABLE users ALTER COLUMN discord_id DROP NOT NULL;
-    ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub TEXT UNIQUE;
     CREATE TABLE IF NOT EXISTS posts (id SERIAL PRIMARY KEY, slug TEXT UNIQUE NOT NULL, title TEXT NOT NULL,
       descr TEXT, body TEXT NOT NULL, at TIMESTAMPTZ NOT NULL DEFAULT now());`);
+  await migrate(db); // clipper platform tables (safe to run on every start, drops nothing)
   await seed();
   await seed2();
   await seed3();
   const sr = (await db.query('SELECT data FROM content WHERE id = 4')).rows[0]; if (sr) SEO = sr.data;
-  app.listen(process.env.PORT || 3000, () => console.log('SIDQ Creative is running'));
+  app.listen(process.env.PORT || 3000, () => { console.log('SIDQ Creative is running'); jobs.start(); });
 })().catch(e => { console.error('Database error:', e.message); process.exit(1); });
