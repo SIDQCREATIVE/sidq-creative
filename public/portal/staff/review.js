@@ -108,7 +108,7 @@ function decisionPanel(r) {
       <div style="margin-top:16px">${btnStack(h`<button type="button" class="btn p blk" data-act="cd.approve">Approve clip</button>${rejectBtn}`)}</div>`;
   } else if (st === 'checking') {
     body = h`<div class="ch"><h3>Check the analytics</h3>${chip('Round ' + c.analytics_round, 'mu')}</div>
-      ${checkList([['mu', 'The recording shows this video and its views'], ['mu', 'Countries, age and gender look like a real audience'], ['mu', 'It is one continuous recording, not cut or edited'], c.account.connected ? ['ok', `Views are read from the connected ${PN[c.platform] || ''} account, so you do not need to type them`] : null])}
+      ${checkList([['mu', 'The recording shows this video and its views'], ['mu', 'Countries, age and gender look like a real audience'], ['mu', 'It is one continuous recording, not cut or edited'], c.views_source === 'api' ? ['ok', `Views are read automatically from ${PN[c.platform] || 'the platform'}, so you do not need to type them`] : null])}
       <div style="margin-top:14px">${viewsField(c, 'Views shown in the analytics')}</div>
       <label class="f"><span class="h">Note for the clipper (optional)</span><input class="in" id="cdnote" maxlength="200" placeholder="They see this in the clip history"></label>
       ${btnStack(h`<button type="button" class="btn p blk" data-act="cd.verify">Verify clip</button><button type="button" class="btn blk" data-act="cd.decline">Ask for a new recording</button>${rejectBtn}`)}`;
@@ -122,7 +122,7 @@ function decisionPanel(r) {
     body = h`<div class="ch"><h3>Counting views</h3></div>
       <p class="sm mu" style="margin-bottom:14px">Approved ${ago(c.approved_at)}. ${c.window_over ? 'The tracking window is over.' : 'Tracking ends ' + until(c.tracking_ends) + '.'} The clip is paid when the window ends and its views are verified.</p>
       ${manual ? h`${viewsField(c, 'Views counted')}` : ''}
-      ${btnStack(h`<button type="button" class="btn p blk" data-act="cd.verify">${manual ? 'Verify with these views' : 'Verify now'}</button>${manual ? h`<button type="button" class="btn blk" data-act="cd.saveviews">Save views only</button>` : ''}${analyticsBtn}${c.account.connected || (c.platform === 'youtube' && r.youtube_api) ? h`<button type="button" class="btn blk" data-act="cd.refresh">${icon('refresh')}Read views from ${PN[c.platform] || 'the platform'} now</button>` : ''}${rejectBtn}`)}`;
+      ${btnStack(h`<button type="button" class="btn p blk" data-act="cd.verify">${manual ? 'Verify with these views' : 'Verify now'}</button>${manual ? h`<button type="button" class="btn blk" data-act="cd.saveviews">Save views only</button>` : ''}${analyticsBtn}${c.account.connected || (r.auto && r.auto[c.platform]) ? h`<button type="button" class="btn blk" data-act="cd.refresh">${icon('refresh')}Read views from ${PN[c.platform] || 'the platform'} now</button>` : ''}${rejectBtn}`)}`;
   } else if (st === 'verified') {
     body = h`<div class="ch"><h3>Verified</h3>${chip('Counting ' + compact(c.pay_views) + ' views', 'ok', 'check')}</div>
       <p class="sm mu" style="margin-bottom:14px">${c.window_over ? 'The tracking window is over. The clip is paid within minutes.' : 'It is paid ' + until(c.tracking_ends) + ' when the tracking window ends.'}${c.est_cents != null ? ' Estimated payment: ' + usd(c.est_cents) + '.' : ''}</p>
@@ -160,7 +160,7 @@ SQ.route('clip/:id', async ctx => {
         ['Posted', c.posted_at ? dtime(c.posted_at) : 'Not known for this platform'],
         ['Submitted', h`${dtime(c.submitted_at)}${lateH != null && cp.submit_hours > 0 ? h` ${chip(lateH <= cp.submit_hours ? hrsText(Math.max(0, lateH)) + ' after posting' : hrsText(lateH) + ' after posting. Limit ' + cp.submit_hours + ' hours.', lateH <= cp.submit_hours ? 'ok' : 'bad')}` : ''}`],
         c.approved_at ? ['Tracking', c.window_over ? 'Window is over' : 'Ends ' + until(c.tracking_ends) + ' (' + dtime(c.tracking_ends) + ')'] : null,
-        ['Views counted', c.pay_views != null ? h`<b class="num">${num(c.pay_views)}</b> <span class="xs mu">${srcLabel(c)}</span>` : h`Not known yet <span class="xs mu">${c.account.connected ? 'They are read automatically from the connected account' : c.platform === 'youtube' ? 'YouTube is read automatically when YOUTUBE_API_KEY is set' : 'Enter them from the analytics recording'}</span>`],
+        ['Views counted', c.pay_views != null ? h`<b class="num">${num(c.pay_views)}</b> <span class="xs mu">${srcLabel(c)}</span>` : h`Not known yet <span class="xs mu">${c.account.connected ? 'They are read automatically from the connected account' : r.auto && r.auto[c.platform] ? 'They are read automatically at the next check' : c.platform === 'youtube' ? 'YouTube is read automatically when YOUTUBE_API_KEY is set' : 'Enter them from the analytics recording, or add SCRAPECREATORS_API_KEY in Railway to read them automatically'}</span>`],
         c.views != null && c.views_source === 'api' ? ['Views on ' + (PN[c.platform] || 'the platform'), h`${num(c.views)}${c.likes ? ', ' + num(c.likes) + ' likes' : ''}${c.comments ? ', ' + num(c.comments) + ' comments' : ''}${c.views_checked_at ? h` <span class="xs mu">checked ${ago(c.views_checked_at)}</span>` : ''}`] : null,
         c.est_cents != null ? ['Estimated pay', usd(c.est_cents)] : c.earned_cents ? ['Paid', usd(c.earned_cents)] : null,
         c.review_note ? ['Review note', c.review_note] : null
@@ -263,7 +263,7 @@ async function loadAccounts() {
 }
 SQ.route('accounts', async ctx => {
   Object.assign(AC, { status: ['pending', 'approved', 'rejected'].includes(ctx.q.status) ? ctx.q.status : 'pending', q: ctx.q.q || '', page: 1 });
-  ctx.set(h`${SQ.head('Accounts', 'Clippers who press Connect are verified automatically and never wait here. This list is for accounts added by hand: find the code in the bio, enter the follower count and approve.')}<div id="actabs"></div>${SQ.bar2(SQ.searchBox('acc', AC.q, 'Search by clipper or handle'))}<div id="aclist" style="transition:opacity .15s"></div>`);
+  ctx.set(h`${SQ.head('Accounts', 'Clippers who press Connect are verified automatically, and so are accounts whose bio code the website can read by itself (YouTube with the API key, TikTok and Instagram with the data service). This list is for the rest: find the code in the bio, enter the follower count and approve.')}<div id="actabs"></div>${SQ.bar2(SQ.searchBox('acc', AC.q, 'Search by clipper or handle'))}<div id="aclist" style="transition:opacity .15s"></div>`);
   await loadAccounts();
 }, 'accounts');
 act('ac.status', el => { AC.status = el.dataset.v; AC.page = 1; return loadAccounts(); });

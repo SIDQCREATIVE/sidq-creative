@@ -8,12 +8,12 @@ SQ.route('home', async ctx => {
   const [d, feed] = await Promise.all([get('/api/dashboard'), get('/api/payout-feed').catch(() => ({ on: false }))]);
   const me = SQ.me, u = me.user, counts = d.counts, total = Object.values(counts).reduce((a, b) => a + b, 0);
   me.balance_cents = d.balance_cents; const wb = $('#walbal'); if (wb) wb.textContent = usd(d.balance_cents);
-  const joined = d.campaigns.some(c => c.joined), acc = d.accounts, hasAcct = (acc.approved || 0) > 0, canConnect = !!(me.connect && (me.connect.youtube || me.connect.tiktok || me.connect.instagram));
+  const joined = d.campaigns.some(c => c.joined), acc = d.accounts, hasAcct = (acc.approved || 0) > 0, canConnect = !!(me.connect && (me.connect.youtube || me.connect.tiktok || me.connect.instagram)), autoCheck = !!(me.auto && (me.auto.youtube || me.auto.tiktok || me.auto.instagram));
 
   const banners = [
     me.staffHoliday && note('info', 'clock', h`<b>Staff are off today (Sunday).</b> Clip reviews and payouts continue on Monday. You can still post and submit clips.`),
     !hasAcct && !(acc.pending || 0) && note('warn', 'link', h`<b>Connect your first account.</b> You need a verified YouTube, TikTok or Instagram account before you can join a campaign.${canConnect ? ' Sign in with the platform and it is verified at once.' : ''}<div style="margin-top:10px"><a class="btn p s" href="#accounts">Connect an account</a></div>`),
-    !hasAcct && (acc.pending || 0) > 0 && note('info', 'clock', h`<b>Your account is waiting for review.</b> We check the code in your bio. Most accounts are verified within a day.${canConnect ? ' To skip the wait, open Accounts and press Verify instantly.' : ''}`),
+    !hasAcct && (acc.pending || 0) > 0 && note('info', 'clock', h`<b>Your account is waiting to be verified.</b> ${autoCheck ? 'We look for the code in your bio by ourselves, usually within minutes. Open Accounts and press Check now to try again right away.' : 'We check the code in your bio. Most accounts are verified within a day.'}${canConnect ? ' To skip the wait, open Accounts and press Verify instantly.' : ''}`),
     (acc.rejected || 0) > 0 && note('bad', 'xc', h`<b>An account was rejected.</b> Open <a href="#accounts" style="color:var(--g)">Accounts</a> to see why and send it for review again.`),
     d.analytics_clips.length > 0 && note('warn', 'upload', h`<b>${SQ.plural(counts.analytics || d.analytics_clips.length, 'clip needs', 'clips need')} your audience analytics.</b> Send a screen recording of your analytics so we can verify the views and pay you.
       <div class="row" style="margin-top:10px">${d.analytics_clips.slice(0, 3).map(c => h`<a class="btn s" href="#clip/${c.id}">${plat(c.platform)} ${(c.title || c.campaign).slice(0, 36)}</a>`)}</div>`),

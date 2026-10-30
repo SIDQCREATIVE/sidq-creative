@@ -66,6 +66,14 @@ const faq = (q, a) => h`<details class="faq"><summary>${q}</summary><div class="
 SQ.route('help', async ctx => {
   const st = SQ.me.settings, L = await SQ.links();
   const min = usd(st.min_payout_cents, { whole: true }), canConnect = !!(SQ.me.connect && Object.values(SQ.me.connect).some(Boolean));
+  const viewsAnswer = (connect, auto) => {
+    const on = ['youtube', 'tiktok', 'instagram'].filter(k => auto[k]).map(k => SQ.PLAT[k]), off = ['youtube', 'tiktok', 'instagram'].filter(k => !auto[k]).map(k => SQ.PLAT[k]);
+    const list = a => a.join(', ').replace(/, ([^,]*)$/, ' and $1');
+    const hand = on.length === 3 ? 'For an account you added by hand, the views are read automatically too.'
+      : on.length ? `For an account you added by hand, ${list(on)} views are read automatically. ${list(off)} views come from the screen recording of your analytics.`
+      : 'For an account you added by hand, the views come from the screen recording of your analytics, so make sure the numbers are clearly visible.';
+    return (connect ? 'When you connect an account, we read the views of its clips from YouTube, TikTok or Instagram by ourselves, so you never type them in. ' : '') + hand;
+  };
   const methods = Object.keys(SQ.METHODS).filter(k => st.methods[k]).map(k => SQ.METHODS[k]).join(', ');
   ctx.set(h`<div class="ph"><div class="t"><h1>Help center</h1><p>Short answers to the questions clippers ask most.</p></div><a class="btn p" href="#support">${icon('lifebuoy')}Contact support</a></div>
     <div class="g4" style="margin-bottom:18px">${[
@@ -76,11 +84,11 @@ SQ.route('help', async ctx => {
       ${faq('How do I earn money?', 'Every campaign pays a rate per 1,000 views, for example $1.00 per 1,000 views. When a clip passes the rules check, its views are counted for the campaign tracking window (7 days unless the campaign says otherwise). When the window ends, the money goes to your wallet.')}
       ${faq('When can I withdraw?', `Once your balance is at least ${min}. ${st.payout_note || ''} You can have one payout request open at a time.`)}
       ${faq('Which payout methods can I use?', methods ? `${methods}. EasyPaisa and JazzCash are paid in Pakistani rupees at our rate on the day we send the money.` : 'Payouts are paused right now.')}
-      ${faq('How are my views counted?', canConnect ? 'When you connect an account, we read the views of its clips from YouTube, TikTok or Instagram by ourselves, so you never type them in. For an account you added by hand, YouTube views are still read automatically. TikTok and Instagram views come from the screen recording of your analytics.' : 'YouTube views are read automatically. For TikTok and Instagram we use the views shown in the screen recording of your analytics, so make sure the numbers are clearly visible.')}
+      ${faq('How are my views counted?', viewsAnswer(canConnect, SQ.me.auto || {}))}
       ${faq('Why do you ask for audience analytics?', 'A screen recording of your audience analytics (views, countries, age and gender) shows that the views are real and have not been edited. We only ask after your clip passes the rules check. If the recording is unclear we ask you to send it again.')}
       ${faq('How do I record my screen?', 'On a computer, open the clip page and press Record my screen. Choose Entire screen, then open your analytics, show the views and the audience tabs, and come back to press Stop. On a phone, use the built-in screen recorder (iPhone: Control Center, Screen Recording. Android: Quick settings, Screen record), then upload the video on the clip page. The limit is 80 MB. One to three minutes is enough. Please do not cut or edit it.')}
       ${faq('Why was my clip rejected?', 'The reason is on the clip page and in your notifications. Common reasons are posting on an account that is not connected, submitting after the time limit, or content that breaks the campaign rules or the Clipper Guidelines. If you disagree, open a ticket.')}
-      ${faq('Can I connect more than one account?', 'Yes, up to 10. Connecting an account verifies it on the spot. An account added by hand is verified with a code in its bio. An account can only belong to one clipper.')}
+      ${faq('Can I connect more than one account?', 'Yes, up to 10. Connecting an account verifies it on the spot. An account added by hand is verified with a code in its bio, and it must be public. An account can only belong to one clipper.')}
       ${canConnect ? faq('Is it safe to connect my account?', 'We only ask to read your profile and your video numbers. We cannot post, delete or change anything, and we never see your password. Our access is stored encrypted and is deleted when you remove the account in the portal. You can also remove our app in your YouTube (Google account security), TikTok or Instagram settings at any time.') : ''}
       ${faq('What are ranks?', 'Your rank grows with the views counted on your approved clips: Noob, Rookie (1,200 views), Clipper (5,000), Pro (20,000) and Elite (100,000).')}
       ${faq('Can I delete a clip I submitted?', 'Only before our team reviews it. Open the clip and press Remove. After review, open a support ticket.')}</div>
