@@ -7,7 +7,7 @@ const makeHttp = require('../lib/http');
 const P = require('../lib/platforms');
 
 module.exports = function mountStaff(app, ctx) {
-  const { db, core, gate, actorOf, sessionUserId, ROLES, STAFF_ROLES, jobs, connect } = ctx;
+  const { db, core, gate, actorOf, sessionUserId, ROLES, STAFF_ROLES, jobs, connect, service, autoverify } = ctx;
   const { fail, clip, int, usd } = core;
   const { STAGE_SQL, STAFF_SELECT, stageOf, staffClipOut } = makeClips(core);
   const { h, paging, like, isSunday, csvCell } = makeHttp(core);
@@ -142,7 +142,7 @@ module.exports = function mountStaff(app, ctx) {
     const committed = (await core.committed([s.campaign_id])).get(s.campaign_id) || 0;
     r.json({ clip: staffClipOut(s), events: events.rows, proofs: proofs.rows.map(p => ({ id: p.id, round: p.round, mime: p.mime, bytes: num(p.bytes), at: p.created_at })), snapshots: snaps.rows.reverse().map(x => ({ views: num(x.views), likes: num(x.likes), comments: num(x.comments), at: x.at })),
       clipper: { ...who, earned_cents: num(who.earned) }, campaign: { ...camp, rate: Number(camp.rate), max_payout: camp.max_payout == null ? null : Number(camp.max_payout), budget_cents: Math.round(Number(camp.budget) * 100), committed_cents: committed },
-      same_video: same.rows, profile_url: profileUrl(s.platform, s.account_handle || ''), youtube_api: ctx.hasYoutubeKey() });
+      same_video: same.rows, profile_url: profileUrl(s.platform, s.account_handle || ''), youtube_api: ctx.hasYoutubeKey(), auto: autoverify.status() });
   }));
 
   // ================================================================ clips: decisions
@@ -274,10 +274,10 @@ module.exports = function mountStaff(app, ctx) {
     const id = int(q.params.id);
     const s = (await db.query('SELECT s.platform, a.verified_via FROM submissions s LEFT JOIN accounts a ON a.id = s.account_id WHERE s.id = $1', [id])).rows[0];
     if (!s) fail('Clip not found', 404);
-    const viaKey = s.platform === 'youtube' && ctx.hasYoutubeKey(), viaLogin = s.verified_via === 'api';
-    if (!viaKey && !viaLogin) fail(s.platform === 'youtube' ? 'Automatic tracking is off. Add YOUTUBE_API_KEY in Railway, or ask the clipper to connect their YouTube.' : `${PLAT[s.platform] || s.platform} views are read automatically only for accounts the clipper connected.`, 409);
+    const viaKey = s.platform === 'youtube' && ctx.hasYoutubeKey(), viaLogin = s.verified_via === 'api', viaService = s.platform !== 'youtube' && service.enabled();
+    if (!viaKey && !viaLogin && !viaService) fail(s.platform === 'youtube' ? 'Automatic tracking is off. Add YOUTUBE_API_KEY in Railway, or ask the clipper to connect their YouTube.' : `${PLAT[s.platform] || s.platform} views are read automatically only for accounts the clipper connected, or when the data service key (SCRAPECREATORS_API_KEY) is set in Railway.`, 409);
     core.limit('refresh:' + (q.actor.id || 'owner'), 60, 600e3);
-    r.json({ ok: true, updated: await jobs.refreshClips([id]) });
+    r.json({ ok: true, updated: await jobs.refreshClips([id], { final: true }) });
   }));
 
   // Pay a verified clip now instead of waiting for the end of its tracking window.
@@ -623,7 +623,7 @@ module.exports = function mountStaff(app, ctx) {
   app.get('/api/staff/settings', gate('settings'), h(async (q, r) => {
     const st = await core.settings(), env = k => !!process.env[k];
     r.json({ settings: st, method_names: core.METHOD_NAMES, jobs: jobs.names,
-      system: { youtube_key: ctx.hasYoutubeKey(), connect_key: connect.keyReady(), connect: Object.fromEntries(['youtube', 'tiktok', 'instagram'].map(k => [k, { configured: P.hasConnect(k), keys: P.KEYS[k].map(v => [v, env(v)]) }])), discord_login: env('DISCORD_CLIENT_ID') && env('DISCORD_CLIENT_SECRET'), bot_token: env('DISCORD_BOT_TOKEN'), data_key: env('DATA_KEY'),
+      system: { youtube_key: ctx.hasYoutubeKey(), service: await service.state(), connect_key: connect.keyReady(), connect: Object.fromEntries(['youtube', 'tiktok', 'instagram'].map(k => [k, { configured: P.hasConnect(k), keys: P.KEYS[k].map(v => [v, env(v)]) }])), discord_login: env('DISCORD_CLIENT_ID') && env('DISCORD_CLIENT_SECRET'), bot_token: env('DISCORD_BOT_TOKEN'), data_key: env('DATA_KEY'),
         webhooks: { staff: env('DISCORD_WEBHOOK_STAFF'), payouts: env('DISCORD_WEBHOOK_PAYOUTS'), campaigns: env('DISCORD_WEBHOOK_CAMPAIGNS') }, site_url: process.env.SITE_URL || '', jobs_off: env('DISABLE_JOBS') } });
   }));
   app.put('/api/staff/settings', gate('settings'), h(async (q, r) => {
@@ -631,6 +631,8 @@ module.exports = function mountStaff(app, ctx) {
     if (b.min_payout_cents !== undefined) { const v = int(b.min_payout_cents, NaN, 100, 1000000); if (!Number.isFinite(v)) fail('The minimum payout must be between $1 and $10,000'); patch.min_payout_cents = v; }
     if (b.referral_pct !== undefined) patch.referral_pct = int(b.referral_pct, 0, 0, 50);
     if (b.pkr_rate !== undefined) { const v = Number(b.pkr_rate); if (!(v >= 50 && v <= 1000)) fail('Enter the PKR rate for $1, between 50 and 1000'); patch.pkr_rate = v; }
+    if (b.service_daily_cap !== undefined) { const v = Number(b.service_daily_cap); if (String(b.service_daily_cap).trim() === '' || !Number.isInteger(v) || v < 0 || v > 100000) fail('The daily limit must be a whole number from 0 to 100,000 (0 pauses the data service)'); patch.service_daily_cap = v; }
+    if (b.service_poll_hours !== undefined) { const v = Number(b.service_poll_hours); if (!Number.isInteger(v) || v < 1 || v > 48) fail('Read a clip again every 1 to 48 hours'); patch.service_poll_hours = v; }
     if (b.show_payout_feed !== undefined) patch.show_payout_feed = !!b.show_payout_feed;
     if (b.payout_note !== undefined) patch.payout_note = clip(b.payout_note, 300);
     if (b.methods && typeof b.methods === 'object') { patch.methods = {}; for (const k of Object.keys(core.METHOD_NAMES)) if (b.methods[k] !== undefined) patch.methods[k] = !!b.methods[k]; patch.methods = { ...(await core.settings()).methods, ...patch.methods }; }
@@ -638,6 +640,13 @@ module.exports = function mountStaff(app, ctx) {
     await core.saveSettings(patch);
     await core.audit(q.actor, 'settings.update', 'settings', '', patch);
     r.json({ ok: true });
+  }));
+  // The Test button next to the data service key: two small lookups that show whether the key works and the answer can be read.
+  app.post('/api/staff/service/test', gate('settings'), h(async (q, r) => {
+    core.limit('svctest', 10, 600e3, 'Wait a few minutes before testing again.');
+    const out = await service.test();
+    await core.audit(q.actor, 'service.test', 'settings', '', { configured: out.configured, ok: out.checks.every(c => c.ok) });
+    r.json({ ok: true, ...out, state: await service.state() });
   }));
   app.post('/api/staff/jobs/:name/run', gate('settings'), h(async (q, r) => {
     if (!jobs.names.includes(q.params.name)) fail('Unknown job', 404);

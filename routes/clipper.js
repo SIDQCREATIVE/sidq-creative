@@ -6,7 +6,7 @@ const P = require('../lib/platforms');
 const makeClips = require('../lib/clips');
 
 module.exports = function mountClipper(app, ctx) {
-  const { db, core, needUser, sessionUserId, actorOf, ROLES, connect } = ctx;
+  const { db, core, needUser, sessionUserId, actorOf, ROLES, connect, service, autoverify } = ctx;
   const { fail, clip, int, HttpError } = core;
   const { STAGE_SQL, CLIP_SELECT, stageOf, clipOut } = makeClips(core);
 
@@ -60,7 +60,7 @@ module.exports = function mountClipper(app, ctx) {
       balance_cents: balance, unread: unread.rows[0].n, needs: { analytics: needs.rows[0].n },
       staff: role ? { role: u.role, label: role.label, perms: role.perms } : null,
       settings: { min_payout_cents: st.min_payout_cents, payout_note: st.payout_note, referral_pct: st.referral_pct, methods: st.methods, show_payout_feed: st.show_payout_feed },
-      staffHoliday: isSunday(), youtube: P.hasYoutubeKey(), connect: connect.status()
+      staffHoliday: isSunday(), youtube: P.hasYoutubeKey(), auto: autoverify.status(), connect: connect.status()
     });
   }));
   app.post('/api/onboard', needUser, h(async (q, r) => {
@@ -88,16 +88,31 @@ module.exports = function mountClipper(app, ctx) {
     ready(q); core.limit('acct:' + q.user.id, 20, 3600e3);
     const platform = String(q.body.platform || '');
     if (!PLAT[platform]) fail('Pick YouTube, TikTok or Instagram');
-    const handle = cleanHandle(platform, q.body.handle);
+    let handle = cleanHandle(platform, q.body.handle);
     if ((await db.query('SELECT count(*)::int AS c FROM accounts WHERE user_id = $1', [q.user.id])).rows[0].c >= 10) fail('You can connect up to 10 accounts');
-    try {
-      const a = (await db.query('INSERT INTO accounts (user_id, platform, handle, verify_code) VALUES ($1,$2,$3,$4) RETURNING id', [q.user.id, platform, handle, core.verifyCode()])).rows[0];
-      r.json({ ok: true, id: a.id });
-    } catch (e) {
+    // "Is the account name correct?" Where the website can read the platform by itself, a wrong username is caught right now.
+    const pr = await autoverify.lookup(platform, handle);
+    if (pr && !pr.found) fail(`We could not find @${handle} on ${PLAT[platform]}. Check the spelling of the username and try again.`);
+    if (pr && pr.isPrivate) fail(`@${handle} is a private account. Make it public so we can read your bio and your views, then add it again.`);
+    if (pr && pr.handle && pr.handle.toLowerCase() === handle.toLowerCase()) handle = pr.handle; // the platform's own spelling
+    const insert = () => db.query('INSERT INTO accounts (user_id, platform, handle, verify_code) VALUES ($1,$2,$3,$4) RETURNING id', [q.user.id, platform, handle, core.verifyCode()]);
+    let a = null;
+    try { a = (await insert()).rows[0]; }
+    catch (e) {
       if (e.code !== '23505') throw e;
-      const own = (await db.query('SELECT user_id FROM accounts WHERE platform = $1 AND lower(handle) = lower($2)', [platform, handle])).rows[0];
-      fail(own && own.user_id === q.user.id ? 'You already added this account' : 'Another clipper already connected this account. If it is yours, open a support ticket.', 409);
+      // Somebody typed this username a day ago or more and never proved it was theirs (no code found, no clips). Anyone can type any username,
+      // so such a claim must not keep the real owner out forever: it is dropped. A verified account, or one with clips, is never touched.
+      const stale = await db.query(`DELETE FROM accounts x WHERE x.platform = $1 AND lower(x.handle) = lower($2) AND x.user_id <> $3 AND x.status IN ('pending','rejected')
+        AND x.verified_via = 'code' AND x.external_id IS NULL AND x.code_at < now() - interval '24 hours' AND NOT EXISTS (SELECT 1 FROM submissions s WHERE s.account_id = x.id)`, [platform, handle, q.user.id]);
+      if (stale.rowCount) { try { a = (await insert()).rows[0]; } catch (e2) { if (e2.code !== '23505') throw e2; } }
     }
+    if (!a) {
+      const own = (await db.query('SELECT user_id, status FROM accounts WHERE platform = $1 AND lower(handle) = lower($2)', [platform, handle])).rows[0];
+      if (own && own.user_id === q.user.id) fail('You already added this account', 409);
+      fail(own && own.status === 'approved' ? 'Another clipper already connected this account. If it is yours, open a support ticket.'
+        : 'Another clipper added this username but has not verified it yet. If the account is yours, try again in a day, or open a support ticket.', 409);
+    }
+    r.json({ ok: true, id: a.id, handle, found: pr ? { followers: pr.followers } : null, auto: !!autoverify.sourceFor(platform) });
   }));
   const myAccount = async q => { const a = (await db.query('SELECT * FROM accounts WHERE id = $1 AND user_id = $2', [int(q.params.id), q.user.id])).rows[0]; if (!a) fail('Account not found', 404); return a; };
   app.delete('/api/accounts/:id', needUser, h(async (q, r) => {
@@ -109,21 +124,28 @@ module.exports = function mountClipper(app, ctx) {
   app.post('/api/accounts/:id/resubmit', needUser, h(async (q, r) => {
     const a = await myAccount(q);
     if (a.status !== 'rejected') fail('Only rejected accounts can be sent for review again');
-    await db.query(`UPDATE accounts SET status = 'pending', reject_reason = '', verify_code = $2 WHERE id = $1`, [a.id, core.verifyCode()]);
+    await db.query(`UPDATE accounts SET status = 'pending', reject_reason = '', verify_code = $2, code_at = now(), checked_at = NULL WHERE id = $1`, [a.id, core.verifyCode()]);
     r.json({ ok: true });
   }));
-  // YouTube only: read the channel description with the free official API and look for the code.
+  // Look for the verification code in the bio, without a person: YouTube with the free API key, TikTok and Instagram through the data service.
   app.post('/api/accounts/:id/check', needUser, h(async (q, r) => {
     const a = await myAccount(q);
     core.limit('acctcheck:' + q.user.id, 15, 3600e3, 'You checked too many times. Wait a few minutes.');
     if (a.status === 'approved') return r.json({ ok: true, approved: true });
-    if (a.platform !== 'youtube' || !P.hasYoutubeKey()) fail('A team member will check this account. You do not need to do anything else.');
-    let ch; try { ch = await P.youtubeChannel(a.handle); } catch (e) { console.error('youtube channel check:', e.message); fail('YouTube did not answer. Try again in a minute.', 502); }
-    if (!ch || !ch.found) fail('We could not find a YouTube channel with that @handle. Check the spelling of the username.');
-    if (!String(ch.description).toUpperCase().includes(String(a.verify_code).toUpperCase())) fail(`We could not find ${a.verify_code} in your channel description yet. Save it in your channel About text, wait a minute, then check again.`);
-    await db.query(`UPDATE accounts SET status = 'approved', followers = $2, external_id = $3, reject_reason = '', reviewed_at = now() WHERE id = $1`, [a.id, ch.subs, ch.id]);
-    await core.notify(q.user.id, 'account_approved', 'YouTube account verified', `@${a.handle} is verified. You can join campaigns now.`, '#campaigns');
-    r.json({ ok: true, approved: true });
+    if (a.status !== 'pending') fail('This account was not approved. Press Send for review again to get a new code.');
+    if (!autoverify.sourceFor(a.platform)) fail('A team member will check this account. You do not need to do anything else.');
+    const res = await autoverify.check(a, 'live'), where = a.platform === 'youtube' ? 'your channel description' : 'your bio';
+    if (res.state === 'approved') return r.json({ ok: true, approved: true });
+    if (res.state === 'not_found') fail(`We could not find @${a.handle} on ${PLAT[a.platform]}. Check the spelling of the username.`);
+    if (res.state === 'private') fail(`@${a.handle} is a private account. Make it public so we can read your bio, then check again.`);
+    if (res.state === 'no_code') fail(`We could not find ${a.verify_code} in ${where} yet. Save it, wait a minute, then check again.`);
+    if (res.state === 'taken') fail('This account is already verified for another clipper. If it is yours, open a support ticket.', 409);
+    if (res.state === 'unavailable') {
+      console.error(`${a.platform} account check failed:`, res.error && res.error.message);
+      if (res.error && ['capped', 'down', 'key'].includes(res.error.code)) fail('Automatic checking is not available right now. A team member will check this account.', 503);
+      fail(`${PLAT[a.platform]} did not answer. Try again in a minute.`, 502);
+    }
+    fail('A team member will check this account. You do not need to do anything else.');
   }));
 
   // ---------------------------------------------------------------- campaigns
@@ -233,9 +255,30 @@ module.exports = function mountClipper(app, ctx) {
         if (cid && v.channelId && cid !== v.channelId) fail(`This video is not on your connected channel @${acct.handle}`);
         Object.assign(info, { title: v.title, thumb: v.thumb, views: v.views, likes: v.likes, comments: v.comments, postedAt: v.postedAt || info.postedAt, source: 'api' });
       }
-    } else if (p.platform === 'tiktok') {
-      const t = await P.tiktokInfo(p.url);
-      if (t) { info.title = t.title || ''; info.thumb = t.thumb || ''; if (t.handle && t.handle.toLowerCase() !== acct.handle.toLowerCase()) fail(`This video was posted by @${t.handle}, not by your connected account @${acct.handle}`); }
+    } else if (p.platform === 'tiktok' || p.platform === 'instagram') {
+      // The optional data service reads the public video: its author (so a clip that is not the clipper's is refused), its views and when it was posted.
+      let v = null;
+      if (service.enabled()) {
+        try { v = await service.video(p.platform, p, { kind: 'live' }); }
+        catch (e) {
+          console.error(`${p.platform} data service lookup failed:`, e.message);
+          if (!extraFlags.some(f => f.code === 'lookup_failed')) extraFlags.push({ code: 'lookup_failed', level: 'high', text: `${PLAT[p.platform]} could not be read automatically right now, so it was not checked that this video is on the clipper's account. Open the video and check that it is really the clipper's.` });
+        }
+      }
+      if (v && !v.found) fail(`We could not find this video on ${PLAT[p.platform]}. Make sure it is public and posted from your account @${acct.handle}. If you posted it just now, wait a few minutes and try again.`);
+      if (v && !v.isVideo) fail('That link is a photo post. Submit the link of a video or reel.');
+      if (v) {
+        const same = (x, y) => String(x || '').toLowerCase() === String(y || '').toLowerCase();
+        const mine = v.author ? same(v.author, acct.handle) || (v.coauthors || []).some(x => same(x, acct.handle)) : p.platform === 'tiktok' && !!p.handle && same(p.handle, acct.handle); // a TikTok link names its account
+        if (v.author && !mine) fail(`This video was posted by @${v.author}, not by your account @${acct.handle}`);
+        if (mine) {
+          Object.assign(info, { title: v.title, thumb: v.thumb, views: v.views, likes: v.likes, comments: v.comments, postedAt: v.postedAt || info.postedAt, source: 'api' });
+          for (let i = extraFlags.length - 1; i >= 0; i--) if (['lookup_failed', 'not_on_account'].includes(extraFlags[i].code)) extraFlags.splice(i, 1); // the data service has now shown whose video it is
+        } else extraFlags.push({ code: 'not_on_account', level: 'high', text: 'The data service did not say who posted this reel. Open it and check that it is really the clipper\'s.' });
+      } else if (p.platform === 'tiktok') {
+        const t = await P.tiktokInfo(p.url);
+        if (t) { info.title = t.title || ''; info.thumb = t.thumb || ''; if (t.handle && t.handle.toLowerCase() !== acct.handle.toLowerCase()) fail(`This video was posted by @${t.handle}, not by your connected account @${acct.handle}`); }
+      }
     }
     if (info.postedAt && Number(camp.submit_hours) > 0) {
       const hrs = (Date.now() - new Date(info.postedAt)) / 36e5;
