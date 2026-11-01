@@ -1,6 +1,6 @@
 const express = require('express'), compression = require('compression'), fs = require('fs'), path = require('path'), crypto = require('crypto');
 const { Pool } = require('pg');
-const makeCore = require('./lib/core'), makeGate = require('./lib/roles'), migrate = require('./lib/schema'), makeJobs = require('./lib/jobs'), mountAssets = require('./lib/assets'), P = require('./lib/platforms'), makeConnect = require('./lib/connect');
+const makeCore = require('./lib/core'), makeGate = require('./lib/roles'), migrate = require('./lib/schema'), makeJobs = require('./lib/jobs'), mountAssets = require('./lib/assets'), P = require('./lib/platforms'), makeConnect = require('./lib/connect'), makeService = require('./lib/dataservice'), makeAutoVerify = require('./lib/autoverify');
 const app = express();
 app.set('trust proxy', 1);
 if (process.env.SITE_URL) {  // send www to the main address
@@ -48,7 +48,8 @@ const core = makeCore(db);
 const { actorOf, gate } = makeGate(q => whoAmI(q), t => valid(t));
 const auth = gate('website'); // content, blog, SEO and applications: owner and admin (or the admin password)
 const clip = (s, n) => String(s || '').slice(0, n);
-const wrap = f => (q, r, n) => Promise.resolve(f(q, r, n)).catch(e => { console.error(e); r.status(500).json({ error: 'Server error' }); });
+const diag = require('./lib/diag');
+const wrap = f => (q, r, n) => Promise.resolve(f(q, r, n)).catch(e => { console.error(e); diag.note(q, e); r.status(500).json({ error: 'Server error' }); });
 
 let tries = 0, leadHits = 0;
 setInterval(() => { tries = 0; leadHits = 0; }, 60000);
@@ -499,8 +500,10 @@ app.get('/r/:code', (q, r) => { const c = String(q.params.code || '').toUpperCas
 
 // The clipper API and the staff API. Both are plain route files that get the shared helpers below.
 const connect = makeConnect({ db, core });
-const jobs = makeJobs({ db, core, connect });
-const portal = { db, core, needUser, sessionUserId, actorOf, gate, ROLES: makeGate.ROLES, STAFF_ROLES: makeGate.STAFF_ROLES, jobs, connect, hasYoutubeKey: P.hasYoutubeKey, ck, setCk, sign: sidMac };
+const service = makeService({ db, core }); // optional paid data service for TikTok and Instagram (SCRAPECREATORS_API_KEY)
+const autoverify = makeAutoVerify({ db, core, service });
+const jobs = makeJobs({ db, core, connect, service, autoverify });
+const portal = { db, core, needUser, sessionUserId, actorOf, gate, ROLES: makeGate.ROLES, STAFF_ROLES: makeGate.STAFF_ROLES, jobs, connect, service, autoverify, hasYoutubeKey: P.hasYoutubeKey, ck, setCk, sign: sidMac };
 require('./routes/clipper')(app, portal);
 require('./routes/connect')(app, portal);
 require('./routes/staff')(app, portal);
