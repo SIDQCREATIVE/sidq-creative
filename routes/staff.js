@@ -5,9 +5,13 @@
 const makeClips = require('../lib/clips');
 const makeHttp = require('../lib/http');
 const P = require('../lib/platforms');
+const wire = require('../lib/wire');
+const release = require('../lib/release');
 
 module.exports = function mountStaff(app, ctx) {
-  const { db, core, gate, actorOf, sessionUserId, ROLES, STAFF_ROLES, jobs, connect, service, autoverify } = ctx;
+  const { db, core, gate, actorOf, sessionUserId, ROLES, STAFF_ROLES, jobs, connect } = ctx;
+  const { service, autoverify } = wire(ctx); // built here when server.js did not build them (an older server.js)
+  const { safe, safeAsync } = wire;
   const { fail, clip, int, usd } = core;
   const { STAGE_SQL, STAFF_SELECT, stageOf, staffClipOut } = makeClips(core);
   const { h, paging, like, isSunday, csvCell } = makeHttp(core);
@@ -142,7 +146,7 @@ module.exports = function mountStaff(app, ctx) {
     const committed = (await core.committed([s.campaign_id])).get(s.campaign_id) || 0;
     r.json({ clip: staffClipOut(s), events: events.rows, proofs: proofs.rows.map(p => ({ id: p.id, round: p.round, mime: p.mime, bytes: num(p.bytes), at: p.created_at })), snapshots: snaps.rows.reverse().map(x => ({ views: num(x.views), likes: num(x.likes), comments: num(x.comments), at: x.at })),
       clipper: { ...who, earned_cents: num(who.earned) }, campaign: { ...camp, rate: Number(camp.rate), max_payout: camp.max_payout == null ? null : Number(camp.max_payout), budget_cents: Math.round(Number(camp.budget) * 100), committed_cents: committed },
-      same_video: same.rows, profile_url: profileUrl(s.platform, s.account_handle || ''), youtube_api: ctx.hasYoutubeKey(), auto: autoverify.status() });
+      same_video: same.rows, profile_url: profileUrl(s.platform, s.account_handle || ''), youtube_api: ctx.hasYoutubeKey(), auto: safe('clip.auto', () => autoverify.status(), {}) });
   }));
 
   // ================================================================ clips: decisions
@@ -623,7 +627,7 @@ module.exports = function mountStaff(app, ctx) {
   app.get('/api/staff/settings', gate('settings'), h(async (q, r) => {
     const st = await core.settings(), env = k => !!process.env[k];
     r.json({ settings: st, method_names: core.METHOD_NAMES, jobs: jobs.names,
-      system: { youtube_key: ctx.hasYoutubeKey(), service: await service.state(), connect_key: connect.keyReady(), connect: Object.fromEntries(['youtube', 'tiktok', 'instagram'].map(k => [k, { configured: P.hasConnect(k), keys: P.KEYS[k].map(v => [v, env(v)]) }])), discord_login: env('DISCORD_CLIENT_ID') && env('DISCORD_CLIENT_SECRET'), bot_token: env('DISCORD_BOT_TOKEN'), data_key: env('DATA_KEY'),
+      system: { youtube_key: ctx.hasYoutubeKey(), service: await safeAsync('settings.service', () => service.state(), { name: 'ScrapeCreators', configured: service.configured(), enabled: false, unreadable: true }), health: await safeAsync('settings.health', () => release.health(db), null), connect_key: connect.keyReady(), connect: Object.fromEntries(['youtube', 'tiktok', 'instagram'].map(k => [k, { configured: P.hasConnect(k), keys: P.KEYS[k].map(v => [v, env(v)]) }])), discord_login: env('DISCORD_CLIENT_ID') && env('DISCORD_CLIENT_SECRET'), bot_token: env('DISCORD_BOT_TOKEN'), data_key: env('DATA_KEY'),
         webhooks: { staff: env('DISCORD_WEBHOOK_STAFF'), payouts: env('DISCORD_WEBHOOK_PAYOUTS'), campaigns: env('DISCORD_WEBHOOK_CAMPAIGNS') }, site_url: process.env.SITE_URL || '', jobs_off: env('DISABLE_JOBS') } });
   }));
   app.put('/api/staff/settings', gate('settings'), h(async (q, r) => {

@@ -4,9 +4,15 @@
 const express = require('express');
 const P = require('../lib/platforms');
 const makeClips = require('../lib/clips');
+const diag = require('../lib/diag');
+const release = require('../lib/release');
+const wire = require('../lib/wire');
 
 module.exports = function mountClipper(app, ctx) {
-  const { db, core, needUser, sessionUserId, actorOf, ROLES, connect, service, autoverify } = ctx;
+  const { db, core, needUser, sessionUserId, actorOf, ROLES, connect } = ctx;
+  const { service, autoverify } = wire(ctx); // built here when server.js did not build them (an older server.js)
+  const { safe } = wire;
+  release.mount(app, ctx); // /version: are all files from the same release?
   const { fail, clip, int, HttpError } = core;
   const { STAGE_SQL, CLIP_SELECT, stageOf, clipOut } = makeClips(core);
 
@@ -15,14 +21,13 @@ module.exports = function mountClipper(app, ctx) {
   const COUNTED = `s.status IN ('approved','verified','completed')`;
   const MAX_VIDEO = 80 * 1024 * 1024, MAX_IMAGE = 6 * 1024 * 1024;
 
-  const sendError = (r, e) => {
+  const sendError = (r, e, q) => {
     if (e instanceof HttpError) return r.status(e.status).json({ error: e.message });
     if (e && (e.status === 413 || e.type === 'entity.too.large')) return r.status(413).json({ error: 'That file is too large. A screen recording can be up to 80 MB and a screenshot up to 6 MB. Record a shorter video, about 3 minutes is enough.' });
     if (e && e.type && /^(request\.aborted|request\.size\.invalid|stream\.encoding\.set)$/.test(e.type)) return r.status(400).json({ error: 'The upload was interrupted. Please try again.' });
-    console.error(e);
-    r.status(500).json({ error: 'Something went wrong on our side. Please try again.' });
+    diag.reply(r, q, e, 'Something went wrong on our side. Please try again.'); // the owner also gets the real reason
   };
-  const h = fn => (q, r, n) => Promise.resolve().then(() => fn(q, r, n)).catch(e => sendError(r, e));
+  const h = fn => (q, r, n) => Promise.resolve().then(() => fn(q, r, n)).catch(e => sendError(r, e, q));
   const ready = q => { if (!q.user.agreed_at) fail('Finish the start-up steps first (age and rules).'); };
   const paging = (q, per = 20) => { const page = int(q.query.page, 1, 1, 100000); return { page, per, offset: (page - 1) * per }; };
   const like = s => '%' + String(s).replace(/[\\%_]/g, '\\$&') + '%';
@@ -44,6 +49,7 @@ module.exports = function mountClipper(app, ctx) {
     const u = id && (await db.query('SELECT * FROM users WHERE id = $1', [id])).rows[0];
     if (!u) return r.json({ user: null });
     if (u.banned) return r.json({ user: null, banned: true, reason: u.ban_reason || '' });
+    q.user = u; // lets an error on this page tell the owner the real reason
     const [accounts, balance, unread, st, needs] = await Promise.all([
       db.query(`SELECT a.id, a.platform, a.handle, a.followers, a.status, a.verify_code, a.reject_reason, a.verified_via, pc.status AS conn_status, pc.synced_at AS conn_synced
         FROM accounts a LEFT JOIN platform_connections pc ON pc.account_id = a.id WHERE a.user_id = $1 ORDER BY a.id`, [u.id]),
@@ -60,7 +66,7 @@ module.exports = function mountClipper(app, ctx) {
       balance_cents: balance, unread: unread.rows[0].n, needs: { analytics: needs.rows[0].n },
       staff: role ? { role: u.role, label: role.label, perms: role.perms } : null,
       settings: { min_payout_cents: st.min_payout_cents, payout_note: st.payout_note, referral_pct: st.referral_pct, methods: st.methods, show_payout_feed: st.show_payout_feed },
-      staffHoliday: isSunday(), youtube: P.hasYoutubeKey(), auto: autoverify.status(), connect: connect.status()
+      staffHoliday: isSunday(), youtube: P.hasYoutubeKey(), auto: safe('me.auto', () => autoverify.status(), {}), connect: safe('me.connect', () => connect.status(), {})
     });
   }));
   app.post('/api/onboard', needUser, h(async (q, r) => {
@@ -353,7 +359,7 @@ module.exports = function mountClipper(app, ctx) {
     if (len > (video ? MAX_VIDEO : MAX_IMAGE)) fail(video ? 'That recording is too large. The limit is 80 MB. Record a shorter video, about 3 minutes is enough.' : 'That screenshot is too large. The limit is 6 MB.', 413);
     n();
   });
-  app.post('/api/clips/:id/proof', needUser, proofReady, videoGate, express.raw({ type: IMAGES, limit: MAX_IMAGE }), express.raw({ type: VIDEOS, limit: MAX_VIDEO }), (err, q, r, n) => sendError(r, err), h(async (q, r) => {
+  app.post('/api/clips/:id/proof', needUser, proofReady, videoGate, express.raw({ type: IMAGES, limit: MAX_IMAGE }), express.raw({ type: VIDEOS, limit: MAX_VIDEO }), (err, q, r, n) => sendError(r, err, q), h(async (q, r) => {
     const s = await myClip(q);
     if (!['approved', 'verified'].includes(s.status) || !['requested', 'submitted'].includes(s.analytics_state)) fail('This clip is not waiting for analytics right now');
     const body = Buffer.isBuffer(q.body) && q.body.length ? q.body : null, mime = imageType(body) || videoType(body);
