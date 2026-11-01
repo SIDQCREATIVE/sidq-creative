@@ -36,6 +36,7 @@ async function api(path, o) {
   const data = (res.headers.get('content-type') || '').includes('json') ? await res.json().catch(() => ({})) : null;
   if (!res.ok) {
     const e = fail((data && data.error) || (res.status === 401 ? 'Please log in again.' : res.status === 403 ? 'You are not allowed to do that.' : 'Something went wrong. Please try again.'), res.status);
+    if (data && data.detail) { e.detail = String(data.detail); e.message += ' (Only the owner sees this: ' + e.detail + ')'; } // the real reason, sent only when the owner is asking
     if (res.status === 401 && SQ.on401 && !o.quiet) SQ.on401(e);
     throw e;
   }
